@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Use when the user asks to commit changes to git, create one or more commits, choose commit messages, apply the repo's gitmoji commit convention, or cleanly finish the current reviewed worktree into one or more well-explained commits. Also use for git trouble: diverged branch, pull/rebase conflicts, merge conflict resolution, accidentally staged files, undoing a local merge, recovering overwritten changes, stacked branches for dependent MRs.
+description: "Use when the user asks to commit changes to git, create one or more commits, choose commit messages, apply the repo's gitmoji commit convention, or cleanly finish the current reviewed worktree into one or more well-explained commits. Also use for git trouble: diverged branch, pull/rebase conflicts, merge conflict resolution, accidentally staged files, undoing a local merge, recovering overwritten changes, stacked branches for dependent MRs."
 ---
 
 # Commit
