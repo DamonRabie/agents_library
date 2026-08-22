@@ -1,0 +1,32 @@
+name: Reusable asset proposal
+description: Propose a new skill, command, agent, or broadly reusable improvement.
+title: "[Proposal]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Reusable problem
+      description: Describe the cross-project problem without confidential context.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Proposed scope
+      description: Explain the asset or existing super-skill change you propose.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence and verification
+      description: Explain how the proposal would be evaluated and maintained.
+    validations:
+      required: true
+  - type: textarea
+    id: provenance
+    attributes:
+      label: Source and license
+      description: Identify any imported or adapted source material and its license.

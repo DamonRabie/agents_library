@@ -1,0 +1,38 @@
+name: Bug report
+description: Report incorrect or unsafe behavior in a reusable asset.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include credentials, private infrastructure details, customer
+        data, or project codenames. Report security vulnerabilities through
+        the private Security Advisory link instead.
+  - type: input
+    id: path
+    attributes:
+      label: Affected path
+      description: Identify the skill, command, agent, or documentation path.
+      placeholder: skills/example/SKILL.md
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Current behavior
+      description: Explain what is incorrect and how to reproduce it safely.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Suggested verification
+      description: Describe a check that would prove the issue is fixed.
