@@ -1,5 +1,5 @@
 ---
-name: {{skill-name}}
+name: "{{skill-name}}"
 description: "{{One-line description}}. Use when: {{trigger conditions}}."
 ---
 
