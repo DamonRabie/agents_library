@@ -1,0 +1,12 @@
+technique,when_to_use,example,benefit,caveat
+PREWHERE,Filter on partition/date columns before row read,"PREWHERE date = '2024-01'","Reads only matching marks; up to 10x on wide tables","Only for columns stored separately; avoid complex expressions"
+Aggregate projection,"Pre-compute GROUP BY results used repeatedly","ADD PROJECTION monthly_rollup (SELECT month sum(rev) GROUP BY month)","Eliminates full scan for rollup queries","Doubles storage; must MATERIALIZE after adding"
+Dictionary,Replace slow JOIN to small dimension table,"dictGet('product_dict', 'category', product_id)","No join; O(1) lookup","Dictionary must fit in memory; refresh lag"
+Skip index,Low-cardinality string filter ("WHERE status='X'"),"INDEX status_idx status TYPE set(0) GRANULARITY 1","Skips granules that don't match","Only helps if high selectivity; bad for high-cardinality"
+Partition pruning,Date-range queries,"PARTITION BY toYYYYMM(event_date) + WHERE date BETWEEN ...","Reads only matching partitions","Partition key must match query filter"
+Sampling,Approximate aggregations on huge tables,"SELECT count() FROM t SAMPLE 0.01","100x faster for estimates","Results are approximate"
+FINAL avoidance,"ReplacingMergeTree at high write rate","Use OPTIMIZE TABLE FINAL periodically","Avoid FINAL on hot tables","FINAL locks table during merge on old versions"
+Materialized view,"Transform at ingest time for common aggregation","CREATE MATERIALIZED VIEW mv AS SELECT...","Query reads pre-aggregated data","MV is append-only; no retroactive backfill"
+TTL vs analyst retention,"Hot table needs TTL but dashboards need history","Pre-aggregate aged partitions into a rollup table before TTL drops them","Keep hot table lean; history lives in the rollup","Dropping raw data analysts still query; or keeping unbounded raw history"
+dictGet for dimension lookup,"Frequent small-dimension joins in queries","Replace JOIN with dictGet('db.dict','attr',key); monitor dictionary memory via system.dictionaries","Dictionary fits in memory and refreshes on schedule","JOINing a dimension table in every query; unbounded dictionary growth"
+query_log usage mining,"Building a data catalog or finding unused/slow tables","Aggregate system.query_log by normalized_query_hash tables and user over a window","Catalog reflects real usage: hot tables slow queries failure rates","Guessing importance of tables instead of measuring reads"

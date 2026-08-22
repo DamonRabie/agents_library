@@ -1,0 +1,19 @@
+phase,check,priority,command,pass_condition
+pre_deploy,make verify passes locally,CRITICAL,make verify,Exit 0
+pre_deploy,All CI stages green on branch,CRITICAL,Check GitLab/GitHub CI status,All green
+pre_deploy,DB backup taken,HIGH,"pg_dump $DATABASE_URL > backup_$(date +%Y%m%d).sql",Backup file exists
+pre_deploy,Rollback command identified and tested in staging,HIGH,Identify: docker compose down && docker compose up -d,Rollback tested
+pre_deploy,No secrets in .env committed to repo,HIGH,git grep -r "SECRET\|PASSWORD\|TOKEN" --include="*.env*",0 matches in committed files
+pre_deploy,Image tag pinned to commit SHA not latest,HIGH,Confirm IMAGE_TAG uses $CI_COMMIT_SHORT_SHA,Tag is not 'latest'
+pre_deploy,Migration is idempotent or reversible,MEDIUM,Review migration script,Rollback migration tested
+deploy,Pull new image,CRITICAL,docker pull "$IMAGE_TAG",Exit 0
+deploy,Run migrations,HIGH,"docker compose run -T --rm app alembic upgrade head",Exit 0
+deploy,Force-recreate service,CRITICAL,"docker compose up -d --force-recreate --no-deps app",Exit 0
+post_deploy,Health endpoint responds,CRITICAL,"curl -f http://localhost/health",200 response
+post_deploy,Service logs show no errors,HIGH,"docker compose logs --tail=50 app",No ERROR lines
+post_deploy,Check application metrics,MEDIUM,Grafana / structured logs,Error rate unchanged
+post_deploy,Smoke test primary user flow,HIGH,"make test-smoke or playwright golden path",All assertions pass
+rollback,Identify last stable image tag,CRITICAL,docker images | grep stable_tag,Tag available
+rollback,Redeploy stable image,CRITICAL,"docker compose up -d --force-recreate --no-deps app (with old tag)",Health passes
+rollback,Reverse migration if applied,HIGH,"docker compose run -T --rm app alembic downgrade -1",Exit 0
+rollback,Alert team,HIGH,Slack/email notification,Communicated

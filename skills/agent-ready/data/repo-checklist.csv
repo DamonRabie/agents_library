@@ -1,0 +1,13 @@
+check,priority,command,pass_condition,fix
+git_initialized,CRITICAL,ls .git,Directory exists,git init
+claude_md_present,CRITICAL,"ls CLAUDE.md 2>/dev/null || ls AGENTS.md 2>/dev/null",File exists,Create CLAUDE.md using template in SKILL.md
+make_verify_exists,CRITICAL,"grep -q '^verify:' Makefile",Exit 0,Add verify target to Makefile
+make_test_exists,HIGH,"grep -q '^test:' Makefile",Exit 0,Add test target to Makefile
+make_run_exists,HIGH,"grep -q '^run:' Makefile",Exit 0,Add run target to Makefile
+make_deploy_exists,MEDIUM,"grep -q '^deploy:' Makefile",Exit 0,Add deploy target to Makefile (if deployable service)
+no_env_committed,CRITICAL,"git ls-files | grep -E '\.env($|\.)'",No output,git rm --cached .env; echo .env >> .gitignore
+no_secrets_in_code,CRITICAL,"grep -rI 'password.*=.*[\"'\''][^\"'\'']+' --include='*.py' . | grep -v 'os.environ\|getenv'",No output,Move to env var; rotate if already committed
+skills_are_symlinks,HIGH,"find .claude/skills -mindepth 1 -maxdepth 1 -type d | head -1",No output (all should be symlinks),Replace copies with symlinks to canonical library
+artifacts_gitignored,MEDIUM,"grep -q 'artifacts' .gitignore",Exit 0,echo 'artifacts/' >> .gitignore; mkdir -p artifacts
+gitignore_present,HIGH,ls .gitignore,File exists,Create .gitignore with standard Python/Node exclusions
+make_verify_runs,CRITICAL,make verify,Exit 0,Fix failing checks in verify target

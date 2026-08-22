@@ -1,0 +1,4 @@
+interface:
+  display_name: "Curate From Source"
+  short_description: "Curate skills from external sources"
+  default_prompt: "Use $curate-from-source to inspect this repo, docs set, or book and update the shared library with only durable, generalizable knowledge."

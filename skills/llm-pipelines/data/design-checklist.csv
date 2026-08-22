@@ -1,0 +1,14 @@
+check,priority,method,pass_condition
+rules_before_llm,CRITICAL,Confirm a deterministic prefilter handles the easy majority before any LLM call,LLM only sees rows rules cannot decide
+resume_safe,CRITICAL,Kill the job mid-run and restart,Completed rows are not reprocessed; no duplicates
+closed_label_set,CRITICAL,Inspect output signature/schema,Labels enumerated; Unknown/free-text labels impossible
+schema_validated_per_row,CRITICAL,Feed one malformed response in a test,Row quarantined with raw response; batch continues
+idempotent_writeback,CRITICAL,Run the job twice on the same slice,Row count identical after second run
+cost_estimated_on_sample,HIGH,100-1000 row sample run with token accounting,Extrapolated cost approved before full run
+versioned_outputs,HIGH,Check results schema,Every row carries model name + prompt/module version
+alias_based_loading,HIGH,Grep job config,Model loaded via registry alias not run id or path
+env_based_config,HIGH,Grep for hardcoded URLs/keys/model names,All from environment; nothing secret in code
+timeout_and_retry,HIGH,Read the API call wrapper,Per-request timeout; bounded backoff retries; transient failures deferred not fatal
+observability,HIGH,Read one run's logs,Counts (in/rules/llm/failed) + token usage + wall time logged
+audit_loop_defined,MEDIUM,Ask: how are wrong decisions found and corrected?,Sample audit + keyed correction writeback exists
+reason_codes_present,MEDIUM,Check output schema,Decision + reason_code enum + short free-text reason

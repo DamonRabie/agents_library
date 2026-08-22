@@ -1,0 +1,22 @@
+category,severity_default,language,check,example_violation,fix
+data_loss,BLOCKER,any,DROP TABLE or destructive migration without backup,op.drop_table('users') in upgrade(),Confirm backup exists; add comment with recovery plan
+auth_bypass,BLOCKER,python,"Optional dependency on auth function; unauthenticated access to sensitive data","user: User | None = Depends(get_current_user)","Make dependency non-optional: user: User = Depends(require_user)"
+hardcoded_secret,BLOCKER,any,API key / password / token hardcoded in source,"API_KEY = 'sk-abc123'",Move to env var via pydantic Settings; rotate compromised key
+sql_injection,BLOCKER,python,"f-string or % format in SQL query","sql = f""SELECT * FROM t WHERE id = {user_input}""","Use parameterized queries: execute(text('SELECT * WHERE id = :id'), {'id': id})"
+pem_or_credentials_in_repo,BLOCKER,any,"PEM key, recovery codes, .env committed","gitlab-recovery-codes.txt in repo; private_key.pem committed",Move out of repo immediately; rotate all compromised credentials
+missing_migration,HIGH,python,"Model field added/changed without corresponding Alembic migration","New column in ORM model but no migration file","Run alembic revision --autogenerate; review and commit migration"
+missing_downgrade,HIGH,python,downgrade() not implemented in migration,def downgrade(): pass,Implement reverse of upgrade() operations
+n_plus_one,HIGH,python,ORM relationship loaded inside loop without eager load,"for item in items: print(item.user.name)  # N queries","Use selectinload or joinedload on the initial query"
+no_test_for_new_feature,HIGH,any,New feature added without test coverage,New endpoint in router with no test file,Add integration test covering happy path and auth check
+no_test_for_bug_fix,HIGH,any,Bug fixed but no regression test added,Fix applied with no test that would have caught original bug,Add test that fails without the fix
+async_blocking_io,HIGH,python,Blocking call in async function,"async def handler(): time.sleep(1); requests.get(url)","Use asyncio.sleep(); httpx.AsyncClient; run_in_executor for CPU-bound"
+unbounded_list,HIGH,python,List endpoint returns all rows without pagination,"return db.query(Item).all()","Add page/page_size params; return Page[ItemOut]"
+mutable_default_arg,MEDIUM,python,"Mutable default in function signature","def f(items=[]):","Use None as default: def f(items=None): items = items or []"
+float_for_money,BLOCKER,python,float used for monetary values,"price: float","Use Decimal: from decimal import Decimal; price: Decimal"
+dangerously_set_inner_html,HIGH,typescript,Unsanitized user content in dangerouslySetInnerHTML,"dangerouslySetInnerHTML={{__html: userContent}}",Sanitize with DOMPurify or avoid entirely
+stale_use_effect,MEDIUM,typescript,Missing dependency in useEffect deps array,"useEffect(() => { fn(value) }, [])  # value missing","Add value to deps: useEffect(() => { fn(value) }, [value])"
+cors_wildcard_prod,HIGH,any,CORS allows all origins in production,"allow_origins=['*']","List explicit allowed origins in production settings"
+dockerfile_root,HIGH,dockerfile,Container running as root user,No USER directive in Dockerfile,"Add: RUN useradd -m app; USER app"
+compose_run_no_t,BLOCKER,dockerfile,docker compose run without -T in CI/scripts,"docker compose run app ./migrate.sh","docker compose run -T --rm app ./migrate.sh"
+missing_healthcheck,MEDIUM,dockerfile,No HEALTHCHECK in Dockerfile,No HEALTHCHECK instruction,Add HEALTHCHECK CMD curl -f http://localhost/health
+yaml_unquoted_vars,HIGH,yaml,Shell variables unquoted in CI YAML,"- run: echo $MY_VAR","- run: echo ""$MY_VAR"""

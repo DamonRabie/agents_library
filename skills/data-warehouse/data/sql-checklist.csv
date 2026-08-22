@@ -1,0 +1,13 @@
+check,priority,command_or_method,pass_condition,common_fix
+dry_parse,CRITICAL,"python -c ""import sqlglot; sqlglot.parse(open('q.sql').read(), dialect='clickhouse')""",No exception,Fix syntax error before anything else
+null_date_boundary,HIGH,"SELECT count(*) FROM t WHERE end_date IS NULL","0 or explicitly handled","Add COALESCE(end_date, today())"
+timezone_jalali,HIGH,"Grep for toDate()/toDateTime() without TZ arg","All calls have TZ arg","Add timezone: toDateTime(col, 'Asia/Tehran')"
+join_fanout,HIGH,"SELECT count(*) vs count(DISTINCT join_key)","Equal or expected multiple","Add DISTINCT or fix join key; investigate duplicates"
+dedup_key_coverage,HIGH,"SELECT ORDER BY cols from system.columns","All ORDER BY cols uniquely identify row","Redesign ORDER BY to include all discriminating columns"
+final_on_replacing,HIGH,"Grep SELECTs on ReplacingMergeTree tables for FINAL","FINAL present","Add FINAL keyword after table name"
+typo_column_names,MEDIUM,"Compare column names to system.columns","All columns exist","Check spelling; use system.columns for canonical names"
+prewhere_optimization,MEDIUM,"Check WHERE vs PREWHERE for partition/date filters","Date/partition filter in PREWHERE","Move date filter to PREWHERE"
+late_data_buffer,MEDIUM,"Check watermark logic for buffer window","At least 1-2 hour buffer","Add - INTERVAL 2 HOUR to watermark"
+idempotency_check,HIGH,"Run job twice on same partition; compare counts","Identical row counts","Use partition overwrite or ReplacingMergeTree upsert"
+stage_promotion_path,HIGH,"Check the YAML lives in the review/staging repo not the production repo","File is in the review repo","Move change to the review repo; do not edit synced copy"
+hash_input_normalized,HIGH,"Inspect distinct formats of the column being hashed (length prefix pattern)","Single canonical format before cityhash64/sipHash","Normalize or parse the identifier first; assert format; quarantine malformed values instead of hashing them"

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Surface Curator"
+  short_description: "Trim and merge project skill surfaces"
+  default_prompt: "Use $project-surface-curator to analyze this repo’s skill, agent, and command portfolio, preserve protected core surfaces, merge durable value, and remove the rest."

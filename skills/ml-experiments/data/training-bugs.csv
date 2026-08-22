@@ -1,0 +1,19 @@
+symptom,likely_cause,diagnostic,fix
+NaN loss step 1-10,LR too high; exploding gradients,Print param norms and gradient norms per step,Lower LR 10x; add torch.nn.utils.clip_grad_norm_
+NaN loss after epoch 3-5,LR divergence spike; warmup misconfigured,Plot LR schedule; check scheduler.get_last_lr(),Add LR warmup; use CosineAnnealingLR or OneCycleLR
+Loss stuck at random baseline,LR too low; wrong optimizer; label encoding bug,Compare loss to log(num_classes) for classification,Raise LR 10x; verify labels are 0-indexed integers
+Epoch 1 loss 100x worse than epoch 2,Per-epoch scheduler zeroing warmup; step called before first batch,Print lr at step 0 and step 1,Move scheduler.step() inside batch loop (per-batch not per-epoch)
+OOM on GPU,Batch too large; graph retained between batches; model too large,nvidia-smi dmon; profile with torch.profiler,Halve batch size; add gradient_accumulation_steps; del loss after backward
+Dataloader bottleneck,num_workers=0; slow disk I/O; no prefetch,GPU utilization < 50% during training; profile dataloader time,num_workers = min(8 os.cpu_count()); prefetch_factor=2; pin_memory=True
+Non-reproducible results,Random seed not fixed in all libs; non-deterministic CUDA ops,"Run twice; compare val metric — should be within 1e-4","torch.manual_seed(42); np.random.seed(42); random.seed(42); CUBLAS_WORKSPACE_CONFIG=:4096:8"
+Validation metric much worse than train,Overfitting; too few val samples; data augmentation too aggressive,Plot train vs val curves; check split sizes,Add dropout; increase weight decay; reduce augmentation; more data
+Dataset leakage,Shuffle before split; ID overlap between splits,Check ID intersection: set(train_ids) & set(val_ids),Split first (by ID or time) then shuffle each split independently
+Model loads but different forward pass,Different checkpoint vs current arch; stale weights,Compare model.state_dict() keys to checkpoint keys,Load with strict=False; check arch version
+MLflow run not found,Wrong tracking URI; experiment name mismatch,mlflow.get_tracking_uri(); mlflow experiments list,Set MLFLOW_TRACKING_URI before importing mlflow
+Slow convergence on new dataset,Learning rate from old dataset not optimal; different data distribution,Compare gradient norms to successful run on old data,Run LR finder; use warmup; validate data normalization matches training
+Training stuck after epoch N with no error,Dataloader deadlock; eval/checkpoint step hanging; silent network wait,Per-epoch timestamped logs; py-spy dump the process,Add per-step logging with timestamps; timeout wrappers on eval and upload steps; run scripts not notebooks for long trainings
+Run finished but tracker shows RUNNING,Process killed before end_run; no finally block,Compare run status vs training log tail,Wrap in try/finally mlflow.end_run(); set_terminated stale runs explicitly
+Metrics/artifacts missing from a finished run,Upload failed mid-run; wrong tracking URI mid-process,List run artifacts; check MLFLOW_TRACKING_URI at runtime,Upload missing artifacts to the SAME run; verify artifact list after every run
+Analysis reports wrong or empty metrics,Metric names guessed instead of read from code,Grep log_metric calls in the training script,Use exact metric-name strings from the training code; document the list in project docs
+Early stopping fired while metric still improving,Patience too small for metric noise,Plot metric curve vs stopping epoch,Increase patience; log stopping reason; rerun before drawing conclusions
+Val metrics too good to be true,Preprocessing artifact (vocab/scaler/encoder) fit on full data,Check what data each fitted artifact saw,Fit every artifact on train split only; vals/test used exclusively for evaluation

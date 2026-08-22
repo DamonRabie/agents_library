@@ -1,0 +1,11 @@
+symptom,likely_cause,diagnostic,fix
+ONNX export succeeds but inference fails,Missing companion .onnx.data file for large model,ls -la model_dir/; check for .onnx.data files,Use rglob to collect all companion files
+Numerical parity fails delta > 1e-4,Opset incompatibility; unsupported op in onnxruntime,Compare opset_version to onnxruntime supported opset,Downgrade to supported opset; check op compatibility table
+MLflow header error during upload,MLFLOW_TRACKING_URI wrong; proxy dropping Host header,curl -v $MLFLOW_TRACKING_URI,Set MLFLOW_TRACKING_URI explicitly; fix proxy Host header forwarding
+Model not found after registration,URI format wrong; experiment/run ID mismatch,mlflow.search_registered_models(),Use exact model name; check models:/ URI format
+Wrong model version in production,@production alias not updated; cached local file used,client.get_model_version_by_alias('model' 'production'),Update alias with client.set_registered_model_alias()
+Triton returns wrong output shape,config.pbtxt dims don't match model output,Triton server logs; check config.pbtxt output dims,Update dims in config.pbtxt; restart Triton
+Triton not loading model,Version directory missing; wrong backend name,triton logs: tritonserver --log-verbose=1,Create version/1/ directory; check backend name in config.pbtxt
+GPU OOM during serving,Batch too large; model loaded multiple times,nvidia-smi; check max_batch_size in config.pbtxt,Reduce max_batch_size; use instance_group count=1
+Serving container exits immediately,Non-root user missing permissions; wrong CMD,docker logs container_id,Check file permissions; verify entrypoint CMD is correct
+Latency regression after model update,Larger model; different batch handling; CPU fallback,"Benchmark with: ab -n 1000 -c 10 http://host/v2/models/m/infer","Profile inference path; check GPU vs CPU mode; TensorRT optimize"

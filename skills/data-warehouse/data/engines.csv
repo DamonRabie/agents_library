@@ -1,0 +1,8 @@
+engine,use_case,order_by_guidance,select_modifier,gotcha
+MergeTree,Event log / immutable facts,"(partition_date, entity_id)",,No dedup; duplicates accumulate permanently
+ReplacingMergeTree(version),Slowly changing entity (keep latest),(entity_id),FINAL required on SELECT,Missing FINAL returns duplicates; version col must be monotonically increasing
+SummingMergeTree,Pre-aggregated additive metrics,(dimensions...),Optional FINAL,Not safe for averages or percentiles; only sum/count
+AggregatingMergeTree,Complex pre-aggregations (avg/percentile),(dimensions...),Use -Merge suffix aggregates,-State on INSERT and -Merge on SELECT; forget one and get garbage
+CollapsingMergeTree(sign),CDC with deletes (sign-based),(entity_id),Optional FINAL,INSERT +1 new then -1 old row atomically; stale -1 without +1 creates phantom deletions
+VersionedCollapsingMergeTree(sign version),CDC with concurrent updates,(entity_id),Optional FINAL,Safer than Collapsing; version resolves race conditions
+Distributed,Cross-shard / cross-replica queries,Same as local table,,Local table must exist on all shards; avoid Distributed-on-Distributed

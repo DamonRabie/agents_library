@@ -1,0 +1,11 @@
+rule,category,priority,example,anti_pattern
+pagination_on_all_lists,api_design,CRITICAL,"GET /items?page=1&page_size=20","GET /items returning all rows"
+consistent_error_schema,api_design,HIGH,"{'detail': 'Not found', 'code': 'NOT_FOUND'}","{'error': 'thing not found'} (ad-hoc schema)"
+versioned_prefix,api_design,HIGH,/api/v1/resource,/resource (no version; breaking changes impossible)
+auth_required_on_all_sensitive,auth,CRITICAL,"Depends(require_user) on every non-public route","Optional auth; returning data without token"
+jwt_expiry_short,auth,HIGH,Access token 15min; refresh token 7 days,Access token never expires
+no_hardcoded_secrets,config,CRITICAL,All secrets from env via pydantic Settings,SECRET_KEY = 'my-secret' in code
+idempotent_POST_with_conflict,api_design,MEDIUM,Return 409 on duplicate instead of 500,Let DB constraint raise 500
+structured_validation_errors,api_design,MEDIUM,FastAPI 422 with field-level error detail,Custom 400 for every validation case
+health_endpoint,api_design,HIGH,"GET /health returns 200 with {status: ok}",No health endpoint (compose healthcheck fails)
+cors_explicit,security,HIGH,"CORSMiddleware with explicit origins list","allow_origins=['*'] in production"

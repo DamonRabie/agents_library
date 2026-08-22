@@ -1,0 +1,11 @@
+pitfall,risk,how_to_catch,fix
+drop_table_without_check,DATA LOSS,Review upgrade() for op.drop_table(),Confirm table is empty or data backed up before drop
+not_null_without_default,MIGRATION FAILS ON EXISTING DATA,Check for NOT NULL columns without server_default in upgrade(),"Add server_default='value' or nullable=True in migration; backfill in separate migration"
+type_narrowing_data_loss,DATA LOSS,"Check column type changes (e.g., TEXT → VARCHAR(50))","Verify max length in data: SELECT max(length(col)) FROM t; widen not narrow"
+missing_downgrade,ROLLBACK IMPOSSIBLE,Check downgrade() is implemented and mirrors upgrade(),Implement downgrade() symmetrically
+data_migration_in_schema_migration,RISKY COUPLING,Look for INSERT/UPDATE/DELETE in schema migration,Split: schema migration first; data migration in separate revision
+autogenerate_detects_untracked,PHANTOM MIGRATION,Run alembic check before opening MR,Use alembic check; resolve drift before committing
+index_on_large_table_no_concurrent,TABLE LOCK,Check CREATE INDEX without CONCURRENTLY on large table,"Use CREATE INDEX CONCURRENTLY (Postgres); or op.execute('CREATE INDEX CONCURRENTLY ...')"
+foreign_key_without_index,SLOW JOINS,Check foreign key columns for missing index,Add explicit index on foreign key columns
+enum_migration,PAINFUL,Adding values to Postgres ENUM,Use string column with CHECK constraint; avoid DB-level ENUM
+alembic_heads_diverged,MIGRATION CONFLICT,alembic heads shows multiple heads,Run alembic merge heads; create merge migration

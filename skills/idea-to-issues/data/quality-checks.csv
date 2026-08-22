@@ -1,0 +1,25 @@
+phase,check,failure_mode_prevented,rule
+interrogate,recon_before_questions,Asking the user what the repo already answers,Read code/configs/docs/schemas first; discoverable unknowns are never questions
+interrogate,three_bucket_sort,Question overload; user fatigue before design is done,Sort unknowns: discoverable→look up; defaultable→assumption ledger with default; user-owned→ask
+interrogate,question_budget,Endless interview rounds,Max 2 rounds and ~7 questions for a typical feature; excess questions are usually defaultable
+interrogate,recommended_answer_per_question,User has to design the answer themselves,Every question carries why-it-matters + a recommended answer; a good round can be approved with 'yes to all'
+interrogate,assumption_ledger_objection_pass,Silent assumptions discovered as bugs later,Present defaults as a ledger for one objection pass instead of asking more questions
+interrogate,decision_record_written,Decisions living only in chat scrollback,Phase 1 ends with a written Decision Record; Phase 2 consumes only that artifact
+design,zero_conversation_bar,Plan unusable by anyone who wasn't in the chat,A competent agent with no conversation access could implement from the plan alone
+design,contracts_frozen_exact,Two workers building incompatible halves,Every boundary written exactly: signatures API shapes DDLs config keys metric names CLI commands
+design,file_touch_map,No basis for issue file-ownership,Plan lists every path with create/modify and what changes
+design,dark_corners_sweep,Edge cases discovered by workers mid-run,Walk the sweep list (empty input idempotency concurrency time scale migration observability secrets failure rollback); N/A allowed silence not
+design,verification_strategy,Feature 'done' without proof,Plan states exact commands smoke path and expected outputs per change type
+design,plan_frozen,Workers editing the plan to match what they did,Plan immutable during execution; deviations reported in MRs; human amends between waves
+issues,issue_is_entire_world,Worker confusion from missing context,Issue written for a worker who never saw plan or conversation; all needed info in the body
+issues,copy_dont_reference,Missed details behind 'see plan section 3',Contracts decisions edge-case behaviors and examples pasted verbatim into the issue
+issues,no_paraphrase,Drift from reworded contracts,Exact names and signatures copied from the plan; paraphrase is where drift starts
+issues,seam_slicing,Issues cutting across code boundaries,Slice at frozen interface boundaries; each issue implements one side of a contract
+issues,exclusive_file_ownership,Parallel workers colliding in the same file,File-ownership table per wave; overlap → merge slices sequence them or extract a foundation issue
+issues,fewer_bigger_issues,Fragmentation confusion and integration bugs,Smallest number of issues under the size cap; never split mid-behavior (code + tests + wiring together)
+issues,foundation_first,Shared scaffolding duplicated across issues,One foundation issue for schemas/base classes/plumbing; everything else blocked_by it
+issues,traceability_table,Plan details missing from every issue,Every plan item maps to exactly one issue with verbatim text; any gap fixed before dispatch
+issues,do_not_touch_section,Workers wandering outside scope,Every AFK issue lists files and behaviors it must leave alone
+issues,how_to_verify_commands,Untestable 'it should work' ACs,Exact verification commands with expected output in every issue
+dispatch,dependency_recheck_at_claim,Claiming on stale plan-time state,Verify blocked_by issues actually merged/closed immediately before each claim
+dispatch,stacked_branches,Dependent branch created from master dropping blocker work,Branch from the blocker's branch; MR targets it; retarget after merge

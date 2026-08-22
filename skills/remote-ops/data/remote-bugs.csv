@@ -1,0 +1,15 @@
+symptom,likely_cause,diagnostic,fix
+Training died when ssh/agent session ended,Run started in foreground of the session,Check tmux ls on the remote; no session exists,Always start long runs in a named tmux session on the remote; report the session name
+Cannot tell if remote run is stuck or progressing,No per-step logging to a file,Log file missing or silent for long gaps,tee output to artifacts/<run>.log with timestamps; tail over ssh; add per-epoch progress lines
+Command debugged on the wrong machine,Machine for each command never stated,Ask: where do the data GPU and credentials live?,Run the whole debug loop on the target machine over ssh; state machine per command
+Model download fails on the server,Server has no internet access,curl a public URL from the server,Download on laptop; scp/rsync into the shared HF cache; set HF_HUB_OFFLINE=1; load from local path
+Code on VM differs from laptop,Files scp-ed over a git checkout or pull skipped,git -C project status and log on both machines,Sync only via commit/push/pull; never scp source files
+Changes landed on the wrong branch on the VM,Branch not checked before working,git branch --show-current on the VM,Check branch first; if wrong: commit then cherry-pick to correct branch and reset the wrong one
+Training slow; epochs take forever,Model or data on CPU not GPU,nvidia-smi shows no process or 0 util,Verify .to(device) on model and batches; print parameter device at startup
+CUDA not available in job,Wrong venv; driver/toolkit mismatch; CUDA_VISIBLE_DEVICES empty,python -c torch.cuda.is_available inside the SAME venv,Match torch build to driver; fix env vars; confirm nvidia-smi works at all
+tmux session cannot be found later,Session unnamed or never verified at start,tmux has-session -t <name>,Name every session; verify it started and tail the log immediately after launch
+Tracking server unreachable from VM (or laptop),UI and API reachable from different networks,curl the tracking URI from each machine,Jobs log via the URI reachable from the VM; humans browse via port-forward from laptop; never hardcode localhost in job code
+Registration/upload fails with storage errors,Job using raw object-store credentials instead of the tracker API,Check whether upload goes through the tracking server proxy,Use the tracking server's artifact API; do not require direct bucket access from clients
+Run finished but tracker still shows RUNNING,Process killed before end-run call; no finally block,Check run status vs log file end,Wrap runs in try/finally that terminates the run status; backfill-terminate stale runs
+Remote job started by automation dies at automation timeout,Agent timeout applied to the job itself,Compare job wall time vs automation limit,Automation starts the job in tmux and exits; progress checked in later invocations
+Large file transfer restarted from zero after drop,scp used for multi-GB file,Transfer time vs file size,Use rsync -avP (resumable); verify checksum after transfer

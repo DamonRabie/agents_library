@@ -1,0 +1,11 @@
+check,priority,how_to_verify,pass_condition
+beats_production_on_holdout,CRITICAL,Compare val_metric on test set (never the validation set used during training),New model metric >= production model metric
+eval_rubric_passed,CRITICAL,Check project CLAUDE.md for documented eval thresholds,All rubric conditions met
+smoke_inference_passes,CRITICAL,Load registered model; run known input through forward pass,Output shape correct; no exception; output in expected range
+mlflow_run_complete,HIGH,Check MLflow run has params + metrics + artifacts + model,All four present; run status = FINISHED
+data_leakage_none,HIGH,Check train/val/test ID overlap; verify split sizes match expected,Zero ID overlap; sizes correct
+reproducibility_confirmed,HIGH,Run training twice with same seed; compare metrics,Metrics agree within 1e-4
+no_nan_in_training,HIGH,Check loss curve in MLflow for NaN/Inf values,No NaN/Inf at any step
+artifact_manifest_complete,MEDIUM,Check MLflow artifact list for model + config + any companion files,Model file + config.yaml + any auxiliary files present
+alias_set_correctly,MEDIUM,mlflow.register_model(); set_registered_model_alias('production'),Alias @production points to new version
+rollback_plan_identified,MEDIUM,Identify previous @production model version number,Previous version number recorded before alias change

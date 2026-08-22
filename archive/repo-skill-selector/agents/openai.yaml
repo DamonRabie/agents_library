@@ -1,0 +1,4 @@
+interface:
+  display_name: "Repo Skill Selector"
+  short_description: "Select, trim, and retire project skills safely."
+  default_prompt: "Use $repo-skill-selector to audit the local skill portfolio, keep project-fit and workflow skills, and retire off-stack skills only after migrating useful guidance."

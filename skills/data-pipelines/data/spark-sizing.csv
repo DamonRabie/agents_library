@@ -1,0 +1,9 @@
+symptom,likely_cause,diagnostic,fix
+OOM on executor,Partition too large; large object accumulation,"Check partition size: df.rdd.getNumPartitions(); executor memory in Spark UI","repartition(n) where n = data_GB * 8; reduce object size"
+Single task 100x slower than others,Key skew in groupBy or join,"Count rows per key: df.groupBy(key).count().orderBy(desc('count')).show(10)","Salt the skewed key; or broadcast join the smaller side"
+Job slow — few tasks active,Too few partitions; underutilization,"spark.sql.shuffle.partitions default is 200 — often too low","Set spark.sql.shuffle.partitions = 2-4x core count"
+Driver OOM,collect() or toPandas() on large dataset,"Look for .collect() or .toPandas() in code","Write to storage; use show(n) for samples; never collect large dataset"
+Shuffle too slow — too many small files,Too many partitions after shuffle,"Check output file count after write","Use coalesce(n) before write to reduce output files; enable AQE"
+Executor GC thrash,Many short-lived objects; string explosion,"Check GC time in Spark UI > 10%","Reduce partition size; use off-heap memory; persist intermediate DataFrames"
+Stage hang — straggler task,Last few tasks take 10x longer (speculative needed),"Check Spark UI stage view for straggler tasks","Enable spark.speculation=true; investigate data skew"
+Cannot connect to ClickHouse,JDBC URL wrong; connection pool exhausted,"Test URL manually: clickhouse-client --host ...","Reduce numPartitions on JDBC read; increase CH connection pool"

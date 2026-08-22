@@ -1,0 +1,16 @@
+phase,check,priority,how_to_verify,pass_condition
+export,correct_opset,CRITICAL,Check opset_version in torch.onnx.export call,Opset pinned explicitly (not default)
+export,dynamic_axes,HIGH,Check dynamic_axes covers batch dimension,Batch dimension marked as dynamic
+verify,numerical_parity,CRITICAL,"Run source model and exported model on same input; compare outputs","max_delta < 1e-4"
+verify,shape_match,CRITICAL,Assert output shapes are identical,Shapes match
+verify,no_nan,HIGH,Assert no NaN in exported model output,np.isnan(output).any() == False
+register,companion_files,CRITICAL,Use rglob to collect all files; check .onnx.data present if model > 2GB,All companion files in artifact_dir
+register,mlflow_connectivity,HIGH,"curl -f $MLFLOW_TRACKING_URI/api/2.0/mlflow/experiments/list",200 response
+register,artifact_manifest_logged,HIGH,Check mlflow.artifacts list for model directory,Model directory with all files present
+smoke,load_from_registry,CRITICAL,Load model using models:/name@alias URI (not local path),Load succeeds without exception
+smoke,forward_pass,CRITICAL,Run known input through loaded model,Output shape correct; no exception; no NaN
+smoke,latency_acceptable,MEDIUM,Measure inference time for typical batch,p50 latency within budget
+promote,staging_first,HIGH,Verify @staging alias set before @production,@staging points to new version
+promote,rollback_version_recorded,HIGH,Print current @production version before changing alias,Version number recorded
+promote,rollback_tested,MEDIUM,Test alias rollback in staging environment,Rollback completes and smoke passes
+promote,production_alias,CRITICAL,Set @production alias only after smoke passes,@production updated to new version

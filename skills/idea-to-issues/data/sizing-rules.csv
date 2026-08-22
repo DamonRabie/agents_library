@@ -1,0 +1,17 @@
+slice_type,max_size,classification,rationale,example
+api_endpoint_new,1 day,AFK,Well-defined contract; follows established pattern,Add POST /items endpoint from existing schema
+schema_migration,half day,AFK,Small isolated change; test with alembic check,Add nullable column to users table
+dag_new,1 day,AFK,Established DAG patterns; verify with dag parse,"New daily backfill DAG, follows existing pattern"
+bug_fix_with_repro,half day,AFK,Clear scope; add regression test,Fix null date boundary in session_metrics view
+refactor_behavior_preserving,1 day,AFK,Bounded; test suite proves behavior unchanged,Extract service layer from router
+ml_experiment_node,1 day,AFK,One controlled variable; smoke run verifies,HPO wave 2 node: vary LR range
+architecture_decision,no limit,HITL,Requires human judgment on tradeoffs,Which ClickHouse engine for new events table
+data_labeling,no limit,HITL,Requires human quality judgment,Label 1000 search queries for category relevance
+security_audit,no limit,HITL,Requires human security expertise,Review auth flow for new RBAC roles
+product_taxonomy,no limit,HITL,Requires product/domain expertise,Define category tree for fashion classifier
+wave_gate,no limit,HITL,Human reviews wave results before next wave starts,Review Wave 1 smoke metrics; approve Wave 2
+ml_wave_training_code,1-2 days,AFK,"All training-code development for one wave belongs in ONE issue; splitting variants multiplies setup and merge conflicts; worker delivers code + smoke runs only — full trainings are human-launched (or tmux handoff)","Wave 2: implement all three head variants + smoke each"
+ml_full_training_run,no limit,HITL,"Full trainings outlive worker timeouts and occupy the GPU; human launches and monitors (named tmux on remote)","Launch wave 2 full training after smoke gate"
+ml_results_analysis,no limit,HITL,"Analyzing tracker metrics + sample checks decides the next wave; state the hypothesis on every experiment issue — what outcome changes the plan","Analyze wave 2 runs; pick frontier for wave 3"
+resource_heavy_issue,1 day,AFK,"Label issues warehouse-heavy / GPU-heavy / light; at most one heavy issue at a time; light issues parallel in worktrees; skip rather than reshuffle agreed priorities","GPU-heavy: run embedding backfill (solo slot)"
+dependent_issue_stacked,1 day,AFK,"Re-check blocked_by state at claim time (blocker may be reverted or MR unmerged); branch from the blocker's branch not master; MR targets blocker's branch until it merges","Issue B branched from issue A's open branch"

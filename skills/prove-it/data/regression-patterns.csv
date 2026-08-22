@@ -1,0 +1,12 @@
+symptom,likely_cause,what_to_recheck,fix_pattern
+CI passes locally but fails in CI,"Shell quoting difference; missing env var; TTY assumption","Check shell quoting in all YAML; check stdin handling; diff env vars","Use set -euo pipefail; quote all variables; add -T to docker compose run"
+Test passes alone but fails in suite,Shared state / test ordering dependency,"Run in isolation; run full suite in random order","Use fixtures; tear down state in setUp/tearDown"
+SQL returns wrong count after migration,Missing FINAL clause on ReplacingMergeTree; late-arriving data,"Run OPTIMIZE TABLE FINAL; check watermark logic","Add FINAL to SELECT; add late-data buffer window"
+Model metrics worse after refactor,Unintentional seed change; data leakage from new shuffle,"Compare data splits; compare random seeds","Freeze seed; assert split sizes match prior run"
+Export model fails inference but trains fine,"Opset incompatibility; missing companion file; wrong input shape","Check opset version; check all artifact files present; run forward pass","Use rglob for artifacts; set opset explicitly; add numerical parity test"
+Deploy works in staging fails in prod,"Env var not set in prod; different image tag; DB migration not run","Diff env vars staging vs prod; check image tag; check migration status","Run migration checklist before deploy; use same image tag"
+DAG runs once but breaks on catchup,Missing idempotency; state not reset between runs,"Run DAG twice on same date; check for APPEND vs OVERWRITE","Use partition overwrite; add idempotency check in operator"
+Null pointer in prod not in dev,Different data in prod has NULL values dev data lacks,"Run null boundary checks on prod-like data","Add IS NULL guards; use COALESCE"
+Background job succeeds in test but hangs in prod,Missing timeout; TTY/stdin issue; DB connection pool exhausted,"Add timeout; check connection limits; check stdin flags","Set connection pool size; add timeout param; use --no-TTY"
+Warmup zeroes epoch 1 gradients,Per-epoch LR scheduler applied before any step,"Check scheduler step() call location","Move to per-batch scheduler call"
+ONNX export data file missing,"rglob not used; only top-level file copied","Check for .onnx.data companion files","Use Path.rglob('*') to collect full artifact tree"
