@@ -1,6 +1,6 @@
 ---
 name: llm-pipelines
-description: "LLM batch-processing and DSPy pipeline engineering. Actions: build classifier, convert prompt to dspy, batch classify, judge outputs, register prompt model, monitor LLM pipeline, debug batch job, fix enrichment DAG, evaluate labels, correct labels. Topics: DSPy module, LLM-as-judge, batch classification, rule-based prefilter, prompt versioning, MLflow prompt/model registry, candidate alias, structured output, JSON schema output, retry/timeout for LLM APIs, rate limit, token cost, idempotent result writes, warehouse writeback, label correction, multilingual text, language-violation rules, hallucinated fields. Symptoms: batch job fails midway, results missing from table, LLM API timeout, empty/malformed JSON output, model too strict on non-native language, judge disagrees with labels, cost blowup, duplicate result rows, run not reproducible."
+description: "Build, evaluate, and debug batch LLM or DSPy pipelines for classification, extraction, enrichment, judging, and training-data generation. Use when structured outputs, checkpointing, retries, cost controls, idempotent writes, evaluation sets, prompt/model versioning, or human correction loops matter."
 ---
 # LLM-Pipelines — Batch LLM & DSPy Pipeline Engineering
 
@@ -55,6 +55,25 @@ source table ──► fetch candidates (only unprocessed rows)
 3. **Write results keyed by (source_id, model_version, prompt_version).** New prompt = new version, old results stay for comparison.
 4. **Checkpoint per batch, not per run.** A job that dies at row 90k must keep the first 90k results. Insert per batch; never accumulate everything in memory for one final insert.
 5. **Every run logs: model name, prompt/module version, batch size, row counts (in / rules-decided / LLM-decided / failed), token usage, and wall time.**
+
+## Evaluation Before Optimization
+
+Do not choose a rule, prompt, retrieval strategy, or model from a handful of anecdotes. If no trustworthy evaluation set exists, building one is the first implementation step.
+
+1. Define the decision contract: input grain, closed outputs, abstention/quarantine behavior, and which mistakes cost the most.
+2. Create a versioned evaluation set from representative random samples, known failures, rare slices, and boundary cases. Record provenance without embedding private source values in code or documentation.
+3. Label independently of the candidate system. Keep a locked holdout that prompt and rule changes do not tune against.
+4. Establish a baseline and compare quality by slice as well as aggregate. Include coverage, failure rate, cost, and latency when they affect production fitness.
+5. Save candidate outputs with input fingerprint, model and prompt versions, status, and reason codes so disagreements are reproducible.
+6. Change one material variable at a time. Promote only when the same frozen evaluation protocol shows an improvement or a consciously accepted tradeoff.
+
+Agent- or LLM-generated training labels are candidates, not ground truth. Preserve their provenance, validate them against deterministic constraints or independent review, and keep them out of the locked holdout unless a human-established process has accepted them.
+
+## Durable Stage Checkpoints
+
+For multi-stage generation or review, persist each item's output immediately after the stage succeeds. Use atomic replacement or a transactional write, plus a manifest containing the input fingerprint, stage, model/prompt version, status, and error category. On restart, skip only entries whose fingerprint and versions still match.
+
+Do not keep completed candidate responses only in process memory, notebook state, or chat context. A final report is a derived view over durable stage records, not the sole copy of the work.
 
 ## Structured Output Discipline
 

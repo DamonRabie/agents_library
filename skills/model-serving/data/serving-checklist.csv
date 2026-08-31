@@ -14,3 +14,8 @@ promote,staging_first,HIGH,Verify @staging alias set before @production,@staging
 promote,rollback_version_recorded,HIGH,Print current @production version before changing alias,Version number recorded
 promote,rollback_tested,MEDIUM,Test alias rollback in staging environment,Rollback completes and smoke passes
 promote,production_alias,CRITICAL,Set @production alias only after smoke passes,@production updated to new version
+deploy,refresh_contract,HIGH,"Inspect how a promoted immutable version reaches the serving process","One explicit rollout reload polling or per-request contract exists"
+deploy,idempotent_promotion,HIGH,"Replay the same promotion and deliver an older event after a newer one","Duplicate is a no-op; stale event cannot replace the current target"
+deploy,runtime_identity,CRITICAL,"Query the running service metadata after rollout","Reported immutable version or artifact digest matches the promoted target"
+deploy,real_path_smoke,CRITICAL,"Run known input through the actual serving route after identity matches","Response shape bounds and model identity are correct"
+rollback,runtime_rollback_verified,CRITICAL,"Apply rollback through the same refresh contract; query identity; run smoke inference","Running service reports the prior immutable target and smoke passes"

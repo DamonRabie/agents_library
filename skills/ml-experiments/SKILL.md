@@ -1,6 +1,6 @@
 ---
 name: ml-experiments
-description: "ML experiment lifecycle intelligence. Actions: design experiment, train model, run HPO, debug training, evaluate model, log to MLflow, promote model, build research tree, compare variants, gate model, set baseline. Topics: research tree, HPO hyperparameter optimization, smoke run, warmup, LR scheduler, NaN loss, OOM, dataloader, reproducibility, MLflow tracking, experiment naming, params metrics artifacts, eval rubric, promotion gate, final train, wave slicing, seed, overfitting, validation split, dataset leakage, sampled data, isolated storage. Symptoms: NaN loss, OOM, epoch 1 bad, warmup zeroing gradients, non-reproducible, experiment not logged, model not registered, metrics worse than baseline, slow training, dataloader bottleneck, training stuck, run stuck after epoch, run left in RUNNING status, missing artifacts on run, wrong metric names, early stopping too soon, vocab fit on full data, notebook vs script."
+description: "Design, run, debug, and evaluate ML experiments from dataset readiness through tracked comparison and promotion. Use for training data and split design, experiment notebooks, baselines, smoke runs, HPO, reproducibility, MLflow lifecycle, leakage checks, and promotion decisions."
 ---
 # ML-Experiments — Experiment Lifecycle Intelligence
 
@@ -44,6 +44,19 @@ Complete guide for the ML experiment lifecycle from hypothesis to promoted model
 | 9 | Fit-on-train-only | CRITICAL | Every fitted artifact (vocab, scaler, encoder, embedding, threshold) built from train split only | Building vocab or stats on the full dataset |
 | 10 | Metric name fidelity | HIGH | Read exact metric names from the training code before querying/reporting | Guessing metric names when analyzing runs |
 | 11 | Run lifecycle | HIGH | Every run reaches a terminal status; artifacts verified uploaded | Runs left RUNNING forever; missing artifacts discovered later |
+
+## Data Readiness Gate
+
+Do not start model selection merely because a dataset file exists. Before training:
+
+1. Define the prediction unit, target, horizon, decision point, and point-in-time feature availability.
+2. Profile duplicates, missingness, label coverage, time coverage, class balance, and suspicious target proxies. Resolve whether gaps are unknown, zero, not applicable, or data loss.
+3. Version the dataset construction logic and record source lineage. Persist the exact split membership or a deterministic split key.
+4. Choose a split that matches deployment: time-based for future prediction, group-based when entities repeat, and stratified only when it does not violate time or group boundaries.
+5. Establish a trivial or rules-based baseline before adding model complexity. A candidate must beat the baseline on the decision metric and important slices.
+6. Keep agent- or model-generated labels provenance-tagged and independently validated. They must not contaminate the locked holdout.
+
+If these conditions are not met, the useful output is a data-quality and labeling plan with executable gates, not a training run.
 
 ## Smoke Run Protocol (ALWAYS first)
 
@@ -159,7 +172,8 @@ with mlflow.start_run(run_name="node_N3_lr3e-4_bs64"):
 
 ### Notebooks vs Scripts
 
-- **Notebooks are for experimentation**: training walkthroughs keep inline charts (train vs val curves per run) and fast iteration. Keep heavyweight machinery (backtesting frameworks, sweeps) out — move it to scripts when it stabilizes.
+- **Notebooks are for logic experiments**: call the core transformation, retrieval, scoring, or model function directly; expose intermediate inputs, outputs, and metrics. Do not make an endpoint, UI, or remote tool the center of the notebook unless the experiment is specifically about that integration.
+- **Keep notebooks thin and reproducible**: reusable data preparation and domain logic live in importable modules; the notebook selects a bounded sample, invokes the logic, visualizes evidence, and records the resolved configuration and dataset version.
 - **Scripts are for anything run repeatedly or remotely**: data prep, full trainings, HPO. A notebook that "got stuck after epoch 3" with no logs is unrecoverable; the script version with per-epoch logging is debuggable.
 - Data preparation always lives in scripts, even while modeling is still notebook-phase — otherwise the dataset can't be rebuilt.
 

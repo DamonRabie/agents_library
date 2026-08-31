@@ -1,6 +1,6 @@
 ---
 name: agent-ready
-description: "Agent-readiness auditing and repair for any repo. Actions: audit repo, check repo, make repo agent-ready, scan codebase, add CLAUDE.md, add Makefile, fix skills, check git, add verify target, check secrets, standardize repo, onboard repo for agents. Topics: git init, CLAUDE.md quality, AGENTS.md, make verify, make test, make run, make deploy, skills manifest, symlinks not copies, artifacts convention, secrets out of tree, agent compatibility, repo compatibility, gap report, agent contract. Triggers: 'is this repo ready for agents', 'set up this repo', 'onboard this repo', 'audit this codebase', 'make this agent-friendly'."
+description: "Audit and repair repository readiness for coding agents: project instructions, verification commands, canonical skill links, secret hygiene, and safe public-release preparation. Use when onboarding or auditing a repo, fixing agent confusion, or preparing a repository and its history for public exposure."
 ---
 # Agent-Ready — Repo Auditing & Repair
 
@@ -13,6 +13,7 @@ The meta-skill. Run it on any repo to produce a gap report and fixes. Every supe
 - Before dispatching the first agent worker to a new repo
 - When an agent is producing unexpected results due to repo confusion
 - When starting work on a repo that hasn't been used with agents yet
+- Before making a private repository public, even temporarily
 - Explicit request: "make this repo agent-ready" or "audit this codebase"
 
 ### Recommended
@@ -57,11 +58,11 @@ for target in verify test run deploy; do
     grep -q "^$target:" Makefile 2>/dev/null && echo "make $target: OK" || echo "make $target: MISSING"
 done
 
-# 4. Secrets scan
-grep -rI "password\|secret\|token\|api_key\|private_key" --include="*.py" --include="*.ts" \
-     --include="*.yaml" --include="*.yml" --include="*.json" \
-     --exclude-dir=".git" --exclude-dir="node_modules" . | \
-     grep -v "os.environ\|getenv\|Settings\|BaseSettings\|process.env\|# noqa" | head -20
+# 4. Lightweight working-tree secret scan
+# This is not sufficient for public release; use the full-history audit below.
+rg -l -i '(password|secret|token|api[_-]?key|private[_-]?key)' \
+   -g '*.py' -g '*.ts' -g '*.yaml' -g '*.yml' -g '*.json' \
+   -g '!.git/**' -g '!node_modules/**' . | head -20
 
 # 5. Skill installation (symlinks vs copies)
 [ -d .claude/skills ] && \
@@ -150,16 +151,15 @@ verify:  ## Cheapest full check: lint + typecheck + dry-parse + unit tests
 	<unit test command>
 ```
 
-### secrets in tree
-```bash
-# Move to safe location
-mv sensitive-file.txt ~/sensitive-file.txt.SAFE
-echo "sensitive-file.txt" >> .gitignore
+### Secrets or private data in the tree
 
-# If already committed — requires history rewrite (warn user)
-git filter-branch --force --index-filter \
-    'git rm --cached --ignore-unmatch sensitive-file.txt' HEAD
-```
+Stop before publishing. Remove the material from the current tree and rotate any exposed credential independently of repository cleanup. If it appears in committed history, do not improvise a rewrite: history rewriting is destructive, affects collaborators, and requires explicit approval plus a clean verification clone. Follow the public-release audit below.
+
+## Public Release Preparation
+
+When a repository may become public or be shared outside its current trust boundary, read [references/public-release.md](references/public-release.md) before changing visibility. A working-tree scan is not enough: the audit must cover reachable history, refs, generated artifacts, metadata, and a clean clone of the exact publication candidate.
+
+Prefer a fresh sanitized export when preserving private history has no public value. Treat temporary public visibility as permanent disclosure.
 
 ## Skill Installation Guide (canonical library + symlinks)
 
@@ -182,6 +182,10 @@ git filter-branch --force --index-filter \
 | Job search / personal | idea-to-issues, mr-review |
 
 Universal (broadly useful regardless of repo type): prove-it, ci-deploy, mr-review, idea-to-issues, agent-ready, commit
+
+## Agent Tool Integration Check
+
+For MCP servers or other agent tools, verify four separate states: configuration parses, authentication/registration succeeds, the agent process discovers the tool, and a least-privilege read-only probe works. Tool inventories are commonly built at session startup, so start a fresh session after changing registration or configuration before diagnosing missing tools. Do not treat successful registration alone as proof that the capability is usable.
 
 ## Search
 

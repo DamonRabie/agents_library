@@ -1,6 +1,6 @@
 ---
 name: prove-it
-description: "Verification intelligence. Prove a change works before committing, merging, or deploying. Actions: verify, test, check, validate, confirm, prove, assert, evidence, acceptance criteria, QA, regression. Change types: code change, SQL query, pipeline, API endpoint, ML model, database migration, UI feature, config change, refactor, bug fix, hotfix, deploy, rollback. Tasks: write a test, run tests, check acceptance criteria, validate output, confirm correctness, run smoke test, browser check, click path, screenshot, data validation, row count, checksum, before/after comparison. Symptoms: 'is this correct?', 'did it work?', 'how do I verify?', 'acceptance criteria', 'unit test', 'integration test', 'manual test', 'QA', e2e test, playwright, API probe, SQL assertion, MLflow metric, training validation, deploy smoke."
+description: "Prove that code, data, pipeline, model, UI, configuration, or deployment changes satisfy their acceptance criteria. Use for verification, regression testing, browser or API checks, data assertions, and any completion claim that needs evidence at the boundary where the behavior can fail."
 ---
 # Prove-It — Verification Intelligence
 
@@ -35,41 +35,52 @@ The single skill for proving that a change works — before it merges, before it
 
 | Priority | Category | Impact | Key Checks | Anti-Patterns |
 |---|---|---|---|---|
-| 1 | Evidence hierarchy | CRITICAL | Unit > integration > e2e > probe > screenshot > "compiles" | Claiming verified because it compiles |
+| 1 | Failure-boundary evidence | CRITICAL | Prove behavior at the boundary where it failed | A green unit suite for a broken user flow |
 | 2 | Minimum evidence per change | CRITICAL | See evidence-levels.csv for required floor | Skipping to manual QA when automatable |
 | 3 | Acceptance criteria translation | HIGH | Every AC → one concrete executable check | Vague ACs ("it should work") left untranslated |
-| 4 | CI local-first | HIGH | Reproduce every CI step locally before push | Push → watch fail → patch → repeat |
-| 5 | Data/SQL verification | HIGH | Row count delta, checksum, before/after sample | Eyeballing one row and calling it done |
-| 6 | ML/model verification | HIGH | Metric bounds, numerical parity check, smoke inference | Registering without forward-pass verification |
-| 7 | Regression scope | MEDIUM | Run full suite for touched modules | Only running the new test |
-| 8 | Playwright/browser | MEDIUM | Click golden path, assert visible state, artifact screenshot | Manual click without reproducible test |
+| 4 | Root-cause contract | HIGH | Reproduce failure; fix authoritative producer; rerun same path | Cleaning a bad artifact without fixing its writer |
+| 5 | CI local-first | HIGH | Reproduce every CI step locally before push | Push → watch fail → patch → repeat |
+| 6 | Data/SQL verification | HIGH | Row count delta, checksum, before/after sample | Eyeballing one row and calling it done |
+| 7 | ML/model verification | HIGH | Metric bounds, numerical parity check, smoke inference | Registering without forward-pass verification |
+| 8 | Regression scope | MEDIUM | Run focused and broader checks for touched boundaries | Only running the new test |
+| 9 | Playwright/browser | MEDIUM | Assert state, navigation, console/network health; screenshot second | Treating a screenshot as interaction proof |
 
-## Evidence Hierarchy (canonical order, highest to lowest)
+## Evidence Must Match the Failure Boundary
 
-1. **Automated unit test** — passes on every run, catches regressions permanently.
-2. **Automated integration test** — hits real DB/API/filesystem; slower but proves wiring.
-3. **End-to-end / browser test** (Playwright) — proves user-visible flow.
-4. **API probe** — `curl`/httpx request that asserts status code + response body shape.
-5. **SQL assertion query** — `SELECT COUNT(*), checksum FROM ...` before/after.
-6. **Inference smoke** — forward pass through model with known input → expected output range.
-7. **Screenshot artifact** — visible proof saved to `artifacts/`, timestamped.
-8. **"It compiles / lints clean"** — necessary but not sufficient alone.
+Evidence types answer different questions; they are not a universal ranking:
 
-**Rule:** Never claim a change is verified at level N if a level < N is achievable within the same session.
+- **Unit tests** prove local logic and invariants.
+- **Integration tests** prove wiring across a real persistence, file, API, or process boundary.
+- **End-to-end/browser tests** prove a user-visible flow, including routing and client/server interaction.
+- **API and runtime probes** prove the deployed or running interface responds with the expected status and shape.
+- **SQL assertions** prove data grain, counts, uniqueness, time boundaries, and write effects.
+- **Inference smokes** prove a packaged model loads and produces bounded output.
+- **Screenshots** prove appearance at one moment; they do not prove interaction, persistence, or absence of console errors.
+- **Compile, lint, and type checks** prove structural validity, not behavioral correctness.
+
+**Rule:** The primary proof must cross the boundary where the reported failure lived. Add the cheapest durable lower-level regression check that would catch the same cause again.
 
 ## Acceptance Criteria Translation Protocol
 
 For every AC:
 1. Restate it as a falsifiable condition: _"Given X, when Y, then Z must be measurably true."_
-2. Pick the highest evidence level achievable (see hierarchy above).
+2. Pick evidence at the failure boundary plus a durable regression check where practical.
 3. Write or invoke the check. Record the output.
 4. If it passes: mark AC done. If it fails: fix first, do not merge.
+
+## Bug-Fix Contract
+
+1. Reproduce the original report before editing, or record why reproduction is impossible.
+2. Trace the behavior from the user-facing entry point to the authoritative producer and final side effect. For a generated file, wrong database row, or stale UI value, deleting or relabeling the symptom is not a fix.
+3. Capture a failing test, assertion, or minimal probe when feasible. If a permanent automated check is disproportionate, preserve a deterministic reproduction command and state the limitation.
+4. Apply the smallest fix at the authoritative layer, then rerun the original path without manual cleanup that hides the defect.
+5. Run focused regression checks and one broader check across every touched boundary. A green suite is evidence only for behavior it actually exercises.
 
 ## Quick Reference — Verification by Change Type
 
 Use `scripts/search.py "<change-type>"` to get the full checklist. Summary:
 
-**Code change / bug fix:** unit test that would have caught the bug + regression suite for touched modules.
+**Code change / bug fix:** reproduce at the failing boundary, add a durable regression check when practical, then run the regression suite for touched modules.
 
 **SQL query / view / migration:** dry-parse (no syntax error), row-count delta, null-boundary spot check, sample before/after.
 
@@ -86,6 +97,8 @@ Use `scripts/search.py "<change-type>"` to get the full checklist. Summary:
 **Deploy script change:** run locally against staging first, `make deploy` in dry-run mode, check rollback path.
 
 **Config / env change:** identify all code paths reading the key, test each.
+
+**Dependency upgrade:** run the full automated suite, smoke the highest-risk runtime path, inspect behavior or compatibility changes, and preserve a rollback point. Passing unit tests alone does not prove operational compatibility.
 
 ## Data Change Verification Checklist
 
@@ -120,6 +133,8 @@ with sync_playwright() as p:
     page.screenshot(path=f"artifacts/{feature}_{datetime.datetime.now():%Y%m%d_%H%M%S}.png")
     browser.close()
 ```
+
+For navigation or stateful UI changes, also test direct entry, reload, back/forward behavior, and the inverse interaction that must remain unaffected. Inspect console errors and failed network requests before declaring success.
 
 ## Regression Loop
 

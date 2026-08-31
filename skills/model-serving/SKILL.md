@@ -1,6 +1,6 @@
 ---
 name: model-serving
-description: "Model packaging, registry, and inference serving intelligence. Actions: export model, register model, deploy model, serve inference, promote alias, rollback model, load model, benchmark latency, build serving image, configure Triton, verify export. Topics: ONNX export, MLflow model registry, Triton Inference Server, TensorRT, ONNX Runtime, model alias, staging vs production alias, numerical parity, artifact manifest, companion files, .onnx.data, rglob, multi-file artifact, docker serving image, GPU container, healthcheck, smoke inference, forward pass, rollback alias. Symptoms: export fails, inference wrong, model not found in registry, .onnx.data missing, MLflow header error, artifact upload incomplete, numerical mismatch, Triton model not loading, wrong model version loaded."
+description: "Package, register, deploy, verify, and roll back inference models. Use for export parity, artifact manifests, model-registry aliases, automated promotion/deployment, runtime model identity, serving containers, smoke inference, latency, and failures where registry state differs from the running service."
 ---
 # Model-Serving — Model Packaging, Registry & Inference
 
@@ -41,6 +41,8 @@ Complete guide for the export → verify → register → promote pipeline. Enco
 | 6 | MLflow connectivity | MEDIUM | MLFLOW_TRACKING_URI set; host reachable from export context | Header error discovered mid-export |
 | 7 | GPU docker hygiene | MEDIUM | Non-root; NVIDIA runtime; healthcheck; correct CUDA version | Root user; mismatched CUDA |
 | 8 | Latency budget | MEDIUM | Measure p50/p99 before and after change | Serving latency regression undetected until prod |
+| 9 | Runtime identity | CRITICAL | Running service proves exact model version/digest | Treating registry metadata as deployment proof |
+| 10 | Promotion automation | HIGH | Idempotent trigger; stale-event guard; observable rollout | Alias changes that never refresh the service |
 
 ## The Export → Verify → Register → Promote Pipeline
 
@@ -138,13 +140,28 @@ client.set_registered_model_alias("my_model", "production", registered.version)
 print(f"Promoted version {registered.version} to @production")
 ```
 
+## Registry State Is Not Runtime State
+
+A registry alias is control-plane metadata. Changing it does not prove that an existing serving process reloaded, redeployed, or is routing traffic to the new version.
+
+Define one refresh contract for each service:
+
+- load on process start and trigger an immutable rollout after promotion;
+- poll the registry and atomically reload after validation;
+- consume a signed promotion event and deploy the referenced immutable version; or
+- resolve on each request only when the latency and consistency tradeoff is explicitly acceptable.
+
+Promotion automation must be idempotent and keyed by immutable model version or artifact digest. Ignore stale or duplicate events, serialize competing promotions, preserve the prior serving target, and expose rollout status. The running service should report a non-sensitive model name plus immutable version/digest through a health or metadata interface.
+
+After every promotion, query the running service identity and perform smoke inference through the real serving path. Registry lookup plus local model loading is not deployment verification.
+
 ## Rollback Procedure
 
 ```python
 # Roll back by re-aliasing to previous version (recorded above)
 client.set_registered_model_alias("my_model", "production", rollback_version)
 print(f"Rolled back to version {rollback_version}")
-# No redeployment needed if serving loads by alias — it picks up the change on next load
+# Run the service's refresh contract, then verify runtime identity and smoke inference.
 ```
 
 ## Multi-File Artifact Handling (.onnx.data)
