@@ -1,6 +1,6 @@
 ---
 name: data-pipelines
-description: "Airflow and PySpark pipeline engineering. Actions: design, build, fix, review, backfill, schedule, optimize, debug, test, orchestrate. Topics: DAG design, idempotency, catchup, backfill semantics, retries, SLAs, sensors, sensors, Spark job sizing, partitioning, repartition, shuffle, skew, YAML table description, stage to prod promotion, pipeline testing, dry-run, dag parse, schedule change, cron, task dependency, upstream, downstream, XCom, TaskGroup. Files: dag_*.py, spark_applications/*.py, table_descriptions/*.yaml, docker-compose.yml. Symptoms: DAG fails, task fails, backfill wrong, schedule changed, catchup issue, timeout, retry loop, SLA miss, data skew, OOM in Spark, job slow, import error, YAML invalid, YAML tab error, airflow on kubernetes logs, s3 task logs, pod failure, executor lost, watermark race, missing late rows, jobs run at same time, stagger schedules, LLM API task timeout."
+description: "Design, debug, and verify Airflow or PySpark pipelines, including DAG scheduling, task-state semantics, idempotency, backfills, log triage, runtime sinks, timestamp/version behavior, Spark sizing, and pipeline configuration. Use for DAG files, task logs, scheduler failures, incorrect writes, or pipeline performance work."
 ---
 # Data-Pipelines — Airflow & PySpark Engineering
 
@@ -28,6 +28,17 @@ Complete guide for designing, testing, and maintaining Airflow DAGs and PySpark 
 - SQL query logic inside the job (use data-warehouse for that)
 - ML training pipelines (use ml-experiments)
 - Infrastructure for the Airflow cluster itself (use ci-deploy)
+
+## Fast Diagnostic Path
+
+Use this path when the user pastes a task log or asks whether a pipeline symptom is serious. Diagnose first; do not change code unless the request includes a fix.
+
+1. Identify the claimed symptom, expected outcome, run/task state, and affected side effect. A warning line is not automatically the failure.
+2. Find the earliest causal exception or contract violation, then follow later errors as consequences. Preserve the full traceback and task-state evidence during analysis, but do not copy sensitive log content into repository files.
+3. Trace the deployed code path and effective runtime configuration to the actual source and sink. Do not infer a database, index, table, or service endpoint from a resource name alone.
+4. Separate code defects from dependency, capacity, network, permission, and scheduler/executor failures before editing.
+5. Reproduce the smallest safe slice: DAG parse, one transform, one bounded input, or a read-only connectivity probe. Avoid rerunning a full production batch to answer a diagnostic question.
+6. Report cause, impact, evidence, and the smallest next action. State explicitly when the evidence proves only a hypothesis.
 
 ## Rule Categories by Priority
 
@@ -149,6 +160,14 @@ When Airflow runs on K8s, task logs land in object storage (S3-style) and pod lo
 
 3. **Quick connectivity probe from inside the cluster:** run a one-off pod or `airflow tasks test` with a minimal task that opens the DB/API connection — don't debug networking through a full DAG run.
 4. **DAG self-containment rule:** a DAG file must be runnable from the `dags/` folder alone — no imports from sibling project directories (`scripts/`, `notebooks/`) that don't ship in the deployed image.
+
+## Task State, Sink, and Timestamp Semantics
+
+- **Success is framework state, not control flow.** Returning `False`, `None`, or an empty result can still mark a Python task successful. A failed preflight must raise the framework's failure signal or return a non-zero process status. A deliberate skip is a separate state and must be modeled explicitly.
+- **Verify the DAG outcome, not only the log text.** Check the task state, downstream trigger rules, and final DAG-run state for both the failing and passing cases.
+- **Name timestamp roles.** Event time, source update time, processing time, and dedup/version time are different contracts. Do not reuse one because it is convenient. Generate processing/version time at the intended write boundary, make timezone conversion explicit, and verify the stored value after the write.
+- **Resolve the effective sink.** Trace configuration loading and client construction to identify the runtime destination and logical database/index. A local default, service name, or sample file is not proof of the deployed sink.
+- **Count every terminal path.** For batch work, assert that written, deferred, skipped, quarantined, and failed counts reconcile to fetched input. A task can be green while silently dropping rows.
 
 ## Shared-Table Watermark & Scheduling Traps
 

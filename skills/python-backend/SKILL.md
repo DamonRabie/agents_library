@@ -1,6 +1,6 @@
 ---
 name: python-backend
-description: "Python service engineering intelligence. Actions: design, build, fix, review, migrate, test, refactor, add endpoint, add model, debug, optimize. Stack: FastAPI, Pydantic, SQLAlchemy, Alembic, PostgreSQL, MySQL, pytest, asyncio, uvicorn, celery, redis, docker. Topics: API design, pagination, error handling, versioning, auth patterns, JWT, single-owner auth, OAuth2, Postgres schema, MySQL schema, alembic migration, autogenerate review, data migration, rollback, pytest fixtures, factories, async tests, config management, secrets handling, background jobs, CORS, rate limiting. Files: app/, schemas/, models/, migrations/, tests/, pyproject.toml, alembic.ini. Symptoms: migration fails, test fails, N+1 query, slow endpoint, auth bypass, import error, alembic head mismatch, foreign key error, async issue, celery task not running."
+description: "Design, debug, and review Python services using FastAPI, Pydantic, SQLAlchemy, Alembic, pytest, asyncio, and background workers. Use for API contracts, migrations, auth, persistence, generated-file safety, cross-layer value tracing, performance, configuration, and backend failures."
 ---
 # Python-Backend — Python Service Engineering
 
@@ -41,6 +41,8 @@ Complete guide for FastAPI + SQLAlchemy + Alembic backends. Covers API design, d
 | 6 | Testing pyramid | HIGH | Domain services: unit; DB/API: real database | Mock SQLAlchemy in integration tests |
 | 7 | Secrets management | HIGH | Env vars via pydantic Settings; never hardcoded | Hardcoded secrets in code or YAML |
 | 8 | Error handling | MEDIUM | HTTPException with proper status codes; structured errors | Bare 500 for all errors |
+| 9 | Cross-layer semantics | HIGH | Trace derived values from source to response | Patching a label while the producer remains wrong |
+| 10 | Path containment | CRITICAL | Identifier-derived paths stay under allowed root | Empty or traversal input escaping the intended directory |
 
 ## FastAPI Service Layout
 
@@ -97,6 +99,27 @@ async def require_user(token: str = Depends(oauth2_scheme)) -> User:
 # 400 = bad request (validation); 401 = unauthenticated; 403 = unauthorized
 # 404 = not found; 409 = conflict; 422 = unprocessable; 500 = server error
 ```
+
+## Cross-Layer Contract Tracing
+
+When a UI, report, export, or API field is wrong, do not begin by editing the presentation layer.
+
+1. Reproduce the wrong value at the public boundary and record the expected semantic contract.
+2. Trace the field through response schema construction, endpoint/service calls, domain transformations, ORM/storage fields, and external inputs.
+3. At each boundary, name the unit, provenance, time basis, null behavior, and whether the value is raw, cached, or derived.
+4. Fix the authoritative producer or transformation. Preserve API compatibility deliberately; do not silently change a field's meaning.
+5. Add an integration assertion at the boundary where layers disagreed, plus focused tests for the corrected calculation.
+
+The same rule applies to generated artifacts: removing or moving one bad output is cleanup, not a fix. Trace the writer, correct path resolution, and regenerate from a clean state.
+
+## Safe Generated Paths
+
+Any path derived from a request, record identifier, or UI selection must be resolved under an explicit allowed root before read, write, delete, or export operations.
+
+- Reject blank, absolute, parent-traversal, and malformed identifiers.
+- Resolve both the root and candidate path, then require the candidate to remain a descendant of the root.
+- Apply the same helper to every operation; protecting writes while leaving reads or deletes unchecked is incomplete.
+- Test valid nested identifiers and escape attempts, and assert that rejection happens before any filesystem side effect.
 
 ## Alembic Migration Discipline
 

@@ -1,6 +1,6 @@
 ---
 name: data-warehouse
-description: "ClickHouse OLAP warehouse engineering and SQL quality. Actions: design, build, migrate, optimize, review, fix, backfill, query, materialize, deduplicate, partition, shard, index, profile. Engines: MergeTree, ReplacingMergeTree, SummingMergeTree, AggregatingMergeTree, CollapsingMergeTree, VersionedCollapsingMergeTree, Distributed. Layers: bronze, silver, gold, medallion, staging, production, promotion. Files: .sql, .yaml, clickhouse_job_queries, view_descriptions, table_descriptions. Topics: incremental load, watermark, backfill, upsert, dedup, late-arriving data, partition swap, view vs materialized view, PREWHERE, aggregate projection, dictionary, TTL, ORDER BY, partition key, FINAL clause, ReplacingMergeTree dedup, Jalali date, null date boundary, timezone. Symptoms: wrong row count, dedup not working, query slow, null end_date, join fanout, typo in SQL, view broken, backfill needed, stage to prod promotion, sync."
+description: "Design, debug, and verify ClickHouse analytical warehouses and SQL: engines, grain, deduplication, incremental loads, backfills, query performance, joins, timestamp semantics, timezones, and stage-to-production promotion. Use for warehouse SQL, table/view definitions, or wrong and slow analytical results."
 ---
 # Data-Warehouse — ClickHouse OLAP Engineering
 
@@ -102,6 +102,16 @@ INSERT INTO target_table SELECT * FROM source_table WHERE ...
 ALTER TABLE target_table REPLACE PARTITION partition_expr
     FROM staging_table
 ```
+
+## Timestamp Roles and Freshness
+
+Treat event time, source update time, ingestion time, processing time, and dedup/version time as separate columns unless the data contract explicitly makes them identical.
+
+- Define which clock determines partitions, incremental watermarks, user-visible reporting, and conflict resolution.
+- Generate processing or version timestamps at the write boundary when they represent the current write. Do not carry forward a stale source time merely because it has the right type.
+- Convert timezones explicitly at system boundaries and compare instants in a canonical zone. Preserve the original source offset only when it is part of the business meaning.
+- For model or report datasets, make the as-of cutoff explicit so later facts cannot leak into earlier rows.
+- Verify stored minimum/maximum values and a boundary sample after the write; inspecting only the SQL expression does not prove the persisted result.
 
 ## Backfill Playbook
 

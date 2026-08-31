@@ -1,6 +1,6 @@
 ---
 name: remote-ops
-description: "Remote VM, SSH, and offline-environment operations for ML and data work. Actions: ssh to VM, run on remote, debug on remote, start long run, check training progress, transfer model, sync code to VM, check GPU, fix GPU, run in tmux, monitor remote job. Topics: jump host, ProxyJump, tmux session, nohup, long-running job survival, run-where-the-resources-are, offline/air-gapped VM, no internet on server, scp/rsync model weights, HuggingFace cache directory, HF_HOME, model download bypass, git sync local to VM, branch mismatch on VM, nvidia-smi, CUDA visibility, model not on GPU, remote logs, progress logging, tracking-server access split (job on VM / UI on laptop). Symptoms: command run on wrong machine, training killed when session dropped, cannot tell if run is stuck, VM has no internet, model download fails on server, wrong branch on VM, GPU idle while training slow, epoch takes forever, tmux session not found, ssh drops."
+description: "Operate and debug work on remote VMs or Kubernetes safely: target selection, read-only service inspection, SSH, durable long runs, progress monitoring, offline transfers, Git synchronization, GPU checks, and MCP or agent-tool registration/discovery. Use when commands or resources live outside the local process."
 ---
 # Remote-Ops — Remote VM, SSH & Offline-Environment Discipline
 
@@ -15,6 +15,8 @@ The skill for working across a laptop and remote machines (GPU VMs, servers behi
 - Debugging a remote job (stuck, slow, killed, wrong output)
 - Moving model weights or datasets to/from a machine without internet access
 - Diagnosing GPU problems (job not using GPU, CUDA errors, slow epochs)
+- Inspecting or executing a bounded command in a Kubernetes workload or data service
+- Registering an agent tool that is configured outside the current process and does not appear after setup
 
 ### Recommended
 
@@ -34,6 +36,28 @@ The #1 recurring failure: editing/debugging on the laptop while the job, data, G
 - **Split by resource, not by habit:** compute-heavy and data-adjacent commands run on the VM; UIs and dashboards (tracking server, notebooks) are often reachable only from the laptop (port-forward). Both can be true in one task — keep the split explicit.
 - **Services on the remote network should be reached through their APIs**, not by side-channels (e.g., use the tracking server's API rather than raw object-storage credentials it uses internally).
 - Jump hosts: `ssh -J user@jump:port user@target`. Put frequently used hops in `~/.ssh/config` with `ProxyJump` so scripts and scp/rsync inherit them.
+
+## Remote and Kubernetes Command Preflight
+
+Before any remote command, resolve the execution target explicitly: machine or cluster context, namespace, workload/pod, container, logical database/index when relevant, and whether the command mutates state.
+
+- Start with read-only discovery. A service is routing metadata, not necessarily the process that will execute a command; resolve its selector and choose a healthy backing workload deliberately.
+- Confirm the intended context and target again immediately before mutation. Do not rely on a shell prompt, previous session, or resource name alone.
+- Prefer a single bounded command over an interactive shell. Quote arguments, use an explicit timeout, and capture exit status.
+- Never print the remote environment, secret objects, credential files, connection strings, or full configuration while debugging. Query only the exact non-sensitive field needed to establish the contract.
+- For datastore checks, distinguish network target from logical database/index. Prove the latter from effective application configuration or a bounded metadata query.
+- Report what was inspected and whether it was read-only. Do not persist private infrastructure details into repository documentation, examples, commit messages, or skill memory.
+
+## Tool Registration, Discovery, and Capability
+
+Treat agent-tool setup as four independent checks:
+
+1. Configuration or registration is syntactically accepted.
+2. Authentication succeeds without exposing credential material.
+3. A fresh agent process or session discovers the tool; existing sessions may retain a startup-time tool inventory.
+4. A least-privilege read-only capability probe succeeds.
+
+Do not repeatedly rewrite a valid registration because the current session cannot see newly added tools. Start a fresh session first, then separate authentication, reachability, discovery, and authorization failures from one another.
 
 ## Rule 2 — Long Runs Survive You
 

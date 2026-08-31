@@ -9,3 +9,8 @@ idempotent_POST_with_conflict,api_design,MEDIUM,Return 409 on duplicate instead 
 structured_validation_errors,api_design,MEDIUM,FastAPI 422 with field-level error detail,Custom 400 for every validation case
 health_endpoint,api_design,HIGH,"GET /health returns 200 with {status: ok}",No health endpoint (compose healthcheck fails)
 cors_explicit,security,HIGH,"CORSMiddleware with explicit origins list","allow_origins=['*'] in production"
+derived_value_contract,cross_layer,HIGH,"Response field documents unit provenance time basis and null behavior","Field meaning changes between storage service schema and UI"
+authoritative_producer_fix,debugging,HIGH,"Reproduce at public boundary; trace to writer or transformation; regenerate from clean state","Move delete or relabel one bad artifact without fixing the producer"
+resolved_path_containment,filesystem,CRITICAL,"Resolve allowed root and candidate; require candidate to remain a descendant before any side effect","Join a user- or record-derived identifier directly into read write delete or export paths"
+path_guard_shared,filesystem,HIGH,"One containment helper protects read write delete and export operations","Validate only one operation while sibling paths remain unchecked"
+cross_layer_integration_test,testing,HIGH,"Assert the derived value or generated artifact at the boundary where layers disagreed","Only unit-test each layer while their combined contract stays unverified"

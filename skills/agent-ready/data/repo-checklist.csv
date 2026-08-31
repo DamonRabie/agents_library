@@ -6,8 +6,12 @@ make_test_exists,HIGH,"grep -q '^test:' Makefile",Exit 0,Add test target to Make
 make_run_exists,HIGH,"grep -q '^run:' Makefile",Exit 0,Add run target to Makefile
 make_deploy_exists,MEDIUM,"grep -q '^deploy:' Makefile",Exit 0,Add deploy target to Makefile (if deployable service)
 no_env_committed,CRITICAL,"git ls-files | grep -E '\.env($|\.)'",No output,git rm --cached .env; echo .env >> .gitignore
-no_secrets_in_code,CRITICAL,"grep -rI 'password.*=.*[\"'\''][^\"'\'']+' --include='*.py' . | grep -v 'os.environ\|getenv'",No output,Move to env var; rotate if already committed
+no_secrets_in_code,CRITICAL,"rg -l -i '(password|secret|token|api[_-]?key)[[:space:]]*=[[:space:]]*[^[:space:]]+' -g '*.py' .",No candidate files,Review candidate files without printing values; move real credentials to approved secret handling and rotate exposed values
 skills_are_symlinks,HIGH,"find .claude/skills -mindepth 1 -maxdepth 1 -type d | head -1",No output (all should be symlinks),Replace copies with symlinks to canonical library
 artifacts_gitignored,MEDIUM,"grep -q 'artifacts' .gitignore",Exit 0,echo 'artifacts/' >> .gitignore; mkdir -p artifacts
 gitignore_present,HIGH,ls .gitignore,File exists,Create .gitignore with standard Python/Node exclusions
 make_verify_runs,CRITICAL,make verify,Exit 0,Fix failing checks in verify target
+public_all_refs_scanned,CRITICAL,"Run a full-history secret and sensitive-data scan across every ref intended for publication",No unresolved findings,Remove private material; rotate credentials; use an approved rewrite or sanitized export
+public_generated_surfaces_reviewed,HIGH,"Inspect generated artifacts releases large-file storage submodules and automation artifacts",No private or unlicensed material is exposed,Remove or replace the artifact outside the publication candidate
+public_metadata_reviewed,HIGH,"Review commit author metadata branch and tag names and repository description",Metadata is acceptable for public disclosure,Use a sanitized export when private metadata should not be published
+public_clean_clone_verified,CRITICAL,"Clone the exact publication candidate into a clean temporary directory; rescan and run verification",History scan and repository verification both pass,Block publication until the clean-clone gate passes
