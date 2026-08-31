@@ -1,6 +1,6 @@
 ---
 name: commit
-description: "Use when the user asks to commit changes to git, create one or more commits, choose commit messages, apply the repo's gitmoji commit convention, or cleanly finish the current reviewed worktree into one or more well-explained commits. Also use for git trouble: diverged branch, pull/rebase conflicts, merge conflict resolution, accidentally staged files, undoing a local merge, recovering overwritten changes, stacked branches for dependent MRs."
+description: "Use when the user asks to commit changes to git, create one or more commits, choose privacy-safe commit messages, apply the repo's gitmoji commit convention, or cleanly finish the current reviewed worktree into one or more well-explained commits. Also use for git trouble: diverged branch, pull/rebase conflicts, merge conflict resolution, accidentally staged files, undoing a local merge, recovering overwritten changes, stacked branches for dependent MRs."
 ---
 
 # Commit
@@ -18,7 +18,8 @@ Commit the reviewed worktree cleanly and leave no ambiguous leftovers.
 7. Decide the full commit plan up front. If the remaining files are unclear, mixed with unrelated user edits, or not safe to commit, stop before making any commit and ask.
 8. Stage only the files for the current commit. Prefer narrow pathspecs over broad staging when unrelated leftovers exist.
 9. If the wrong file is staged, unstage it and fix the boundary before committing.
-10. Commit with the repo convention:
+10. Draft the complete subject and body, then apply the commit-message safety gate below. Rewrite unsafe or uncertain details before running `git commit`.
+11. Commit with the repo convention:
 
 ```text
 :git_moji: TYPE: Commit description
@@ -33,7 +34,7 @@ Examples of `TYPE`:
 - `refactor` for behavior-preserving restructuring
 - `test` for test-only changes
 
-11. Continue committing the remaining reviewed file groups until `git status --short` is clean for the agreed scope.
+12. Continue committing the remaining reviewed file groups until `git status --short` is clean for the agreed scope.
 
 ## Memory Update Rules
 
@@ -53,35 +54,43 @@ Examples of `TYPE`:
 
 ## Message Rules
 
+- Treat the full commit message as durable, broadly visible metadata, including subjects, bodies, trailers, merge messages, revert messages, and text generated from branch or issue titles.
+- Describe the high-level intent and outcome, not the underlying sensitive evidence. Commit-message safety overrides the normal preference for specificity.
+- Never include secrets or authentication material, even if already present in the diff, logs, a ticket, or a user-provided draft. This includes passwords, tokens, keys, certificates, cookies, authorization headers, connection strings, and secret locations or names.
+- Never disclose security-related details. Do not name a vulnerability, weakness, exploit or attack path, affected endpoint, bypass, incident, scanner finding, protection gap, attack precondition, or exact security control/configuration. For security-sensitive work, use a neutral description of the general code behavior without identifying the security concern.
+- Never include literal or identifying data. Exclude personal, customer, employee, vendor, business, warehouse, production, training, evaluation, or model-output values; row or payload samples; query literals; prompts; record counts; exact timestamps; account, tenant, order, ticket, issue, or trace identifiers; emails; phone numbers; addresses; internal hostnames, IPs, URLs, ports, database/schema/table/bucket/cluster names, and private project or service names.
+- Do not paste source snippets, commands containing values, logs, stack traces, error messages, query results, scanner output, or ticket text into the message. Summarize the change at a non-sensitive level.
+- Mention a file, path, component, or public issue reference only when its name is already non-sensitive and adds useful context. Otherwise use a generic area such as `request handling`, `configuration`, `validation`, or `processing`.
+- If any detail might be sensitive or data-bearing, omit or generalize it. If a useful body cannot be written safely, use a minimal sanitized body or omit the body; never trade confidentiality for detail.
+- Review user-supplied and Git-generated messages under the same rules. Do not blindly preserve an unsafe proposed subject, merge message, squash message, revert subject, issue title, or trailer.
 - Pick the gitmoji and type that best fit the staged change.
 - Use a clear, concise subject.
 - Use imperative mood where practical.
 - Do not end the subject with a period.
-- Always add a second `-m` body when the commit touches multiple files, non-trivial logic, migrations, config, or user-visible behavior.
+- Add a second `-m` body when the commit touches multiple files, non-trivial logic, migrations, config, or user-visible behavior, unless doing so would disclose or imply sensitive information.
 - Make the second `-m` informative rather than generic. Explain what changed, why it changed, and which files or areas carry the important parts.
-- Mention the key files in the body with one short line per file or file group when that improves scanability.
+- Mention key files or areas in the body only after confirming that their names are safe, with one short line per file or group when that improves scanability.
 - Keep the body specific to the staged diff. Do not repeat boilerplate.
 
 Preferred body shape:
 
 ```text
 Why:
-- <reason for the change>
+- <non-sensitive reason for the change>
 
 What:
-- <file or area>: <change and impact>
-- <file or area>: <change and impact>
+- <safe file or generic area>: <non-sensitive change and impact>
+- <safe file or generic area>: <non-sensitive change and impact>
 ```
 
 Example:
 
 ```text
-git commit -m ":bug: fix: align employee create payload" -m "Why:
-- match frontend payloads to backend employee enums
+git commit -m ":bug: fix: correct request validation" -m "Why:
+- align behavior with current requirements
 
 What:
-- frontend/src/app/dashboard/employees/new/page.tsx: send valid contract_type values and normalize empty supervisor ids
-- frontend/src/app/dashboard/employees/page.tsx: show contract and status labels that match backend values"
+- request handling: update validation and related checks"
 ```
 
 ## Guardrails
@@ -147,6 +156,8 @@ When issue B depends on issue A whose MR is still open: branch B **from A's bran
 - After staging, run `git diff --cached --stat`.
 - If the staged diff is ambiguous, inspect `git diff --cached`.
 - If the staged diff includes files outside the intended commit boundary, unstage them before committing.
+- Before `git commit`, reread the exact final subject and body as a standalone public artifact. Confirm that every literal, identifier, filename, path, URL, trailer, and technical detail passes the message-safety rules; generalize or remove anything uncertain.
+- For merge, squash, cherry-pick, and revert workflows, inspect any generated message before accepting it because source subjects, branch names, issue titles, and trailers can reintroduce sensitive details.
 - After each commit, run `git status --short` again to confirm what remains.
 - Before finishing, verify whether the worktree is clean. If it is not clean, explain exactly which files remain and why they were not committed.
 - After committing, report the short commit hash, subject, body summary, and files included.
