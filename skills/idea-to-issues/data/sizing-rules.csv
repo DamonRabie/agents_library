@@ -1,17 +1,12 @@
 slice_type,max_size,classification,rationale,example
-api_endpoint_new,1 day,AFK,Well-defined contract; follows established pattern,Add POST /items endpoint from existing schema
-schema_migration,half day,AFK,Small isolated change; test with alembic check,Add nullable column to users table
-dag_new,1 day,AFK,Established DAG patterns; verify with dag parse,"New daily backfill DAG, follows existing pattern"
-bug_fix_with_repro,half day,AFK,Clear scope; add regression test,Fix null date boundary in session_metrics view
-refactor_behavior_preserving,1 day,AFK,Bounded; test suite proves behavior unchanged,Extract service layer from router
-ml_experiment_node,1 day,AFK,One controlled variable; smoke run verifies,HPO wave 2 node: vary LR range
-architecture_decision,no limit,HITL,Requires human judgment on tradeoffs,Which ClickHouse engine for new events table
-data_labeling,no limit,HITL,Requires human quality judgment,Label 1000 search queries for category relevance
-security_audit,no limit,HITL,Requires human security expertise,Review auth flow for new RBAC roles
-product_taxonomy,no limit,HITL,Requires product/domain expertise,Define category tree for fashion classifier
-wave_gate,no limit,HITL,Human reviews wave results before next wave starts,Review Wave 1 smoke metrics; approve Wave 2
-ml_wave_training_code,1-2 days,AFK,"All training-code development for one wave belongs in ONE issue; splitting variants multiplies setup and merge conflicts; worker delivers code + smoke runs only — full trainings are human-launched (or tmux handoff)","Wave 2: implement all three head variants + smoke each"
-ml_full_training_run,no limit,HITL,"Full trainings outlive worker timeouts and occupy the GPU; human launches and monitors (named tmux on remote)","Launch wave 2 full training after smoke gate"
-ml_results_analysis,no limit,HITL,"Analyzing tracker metrics + sample checks decides the next wave; state the hypothesis on every experiment issue — what outcome changes the plan","Analyze wave 2 runs; pick frontier for wave 3"
-resource_heavy_issue,1 day,AFK,"Label issues warehouse-heavy / GPU-heavy / light; at most one heavy issue at a time; light issues parallel in worktrees; skip rather than reshuffle agreed priorities","GPU-heavy: run embedding backfill (solo slot)"
-dependent_issue_stacked,1 day,AFK,"Re-check blocked_by state at claim time (blocker may be reverted or MR unmerged); branch from the blocker's branch not master; MR targets blocker's branch until it merges","Issue B branched from issue A's open branch"
+delivery_vertical_slice,One coherent demonstrable outcome,AFK when specified,Include all layers needed for the behavior; narrow by scenario if review or proof becomes too broad,Request one report type and retrieve its result through the actual consumer
+additional_scenario,One independently useful increment,AFK when specified,Expand a supported input; workflow transition; or consumer while preserving earlier behavior,Cancel a running job including late-result protection
+enablement,Smallest prerequisite with named consumer,AFK or HITL according to actual gate,Separate only for a concrete release/access/review boundary; do not default to foundation first,Publish a compatible package needed by the first migrating caller
+schema_migration,Bounded compatibility or rollout stage,AFK or HITL according to actual gate,Keep ordinary schema edits inside their behavior slice; split when safe rollout requires a separate stage,Backfill an added representation and prove compatibility before cutover
+bug_fix,One reproduced behavior and its regression proof,AFK when specified,Keep fix and meaningful regression coverage together,Prevent duplicate records after an interrupted retry
+refactor,One caller or coherent compatibility boundary,AFK when specified,Move a real consumer end to end; preserve behavior and recovery path,Migrate one caller to a replacement client
+discovery,Explicit investigation limit and decision rule,AFK unless human judgment is needed,Bound uncertainty before detailing work that depends on the answer,Measure source replay behavior and decide whether checkpoints are sufficient
+human_decision,One named decision with evidence and exit condition,HITL,Human work is bounded too; no unlimited architecture or taxonomy ticket,Choose retention policy from documented options and update dependent cleanup scope
+ml_experiment,One coherent hypothesis with reproducible evidence,AFK or HITL according to actual gate,Budget execution; preserve dataset/split and metric contracts; smoke results do not prove the hypothesis,Compare one representation against an established baseline
+resource_heavy_execution,Bounded run with capacity and recovery plan,AFK or HITL according to actual gate,Separate execution when environment/cost/approval differs; contention follows actual resource capacity,Resume a historical range run and reconcile partitions
+verification_only,One independently requested evidence deliverable,AFK or HITL according to actual gate,Ordinary implementation tests stay in delivery slices; separate only for real independent verification scope,Certify whole-system compatibility against an external consumer contract
