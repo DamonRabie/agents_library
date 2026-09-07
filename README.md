@@ -125,7 +125,7 @@ Some skills also bundle agent definitions under `skills/<name>/agents/`.
 | `mr-review` | Code review (all languages) | Every repo |
 | `idea-to-issues` | Interrogate → design → issues | Every repo |
 | `agent-ready` | Repo auditing and repair | Every repo (run first on a new repo) |
-| `commit` | Git commit discipline + rescue recipes | Every repo |
+| `commit` | Git commit discipline, README synchronization, and rescue recipes | Every repo |
 | `data-warehouse` | ClickHouse OLAP, SQL quality | Data warehouse repos |
 | `data-pipelines` | Airflow, PySpark | Pipeline/orchestration repos |
 | `llm-pipelines` | Batch LLM/DSPy pipeline engineering | Repos with an LLM processing step |

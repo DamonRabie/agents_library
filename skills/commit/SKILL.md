@@ -11,15 +11,18 @@ Commit the reviewed worktree cleanly and leave no ambiguous leftovers.
 
 1. Run `git status --short` and inspect the changed files.
 2. Review the relevant diffs before staging so the commit plan matches the actual changes.
-3. Check whether the reviewed changes materially update durable project knowledge that future agents should know, such as architecture, workflows, routing, feature phases, operating constraints, or repo-specific conventions.
-4. If the answer is yes, update the project's memory file before any commit. Prefer the canonical source file when `AGENTS.md` or `CLAUDE.md` is a symlink or generated mirror. Preserve the existing format, tone, and section structure; keep the edit concise; record only stable guidance or milestones rather than transient implementation chatter.
-5. Partition the worktree into one or more coherent commits. Split by behavior or purpose, not by file count.
-6. If the user asks to "clean the worktree", plan to finish all reviewed remaining changes in this run, usually as multiple commits when the leftovers are unrelated.
-7. Decide the full commit plan up front. If the remaining files are unclear, mixed with unrelated user edits, or not safe to commit, stop before making any commit and ask.
-8. Stage only the files for the current commit. Prefer narrow pathspecs over broad staging when unrelated leftovers exist.
-9. If the wrong file is staged, unstage it and fix the boundary before committing.
-10. Draft the complete subject and body, then apply the commit-message safety gate below. Rewrite unsafe or uncertain details before running `git commit`.
-11. Commit with the repo convention:
+3. Locate and inspect the project's canonical root README before staging. Check whether the reviewed changes alter anything it describes or should describe, including setup, usage, commands, configuration, architecture, supported behavior, or project status.
+4. When the README would otherwise become incomplete or inaccurate, update it in the same commit scope. Preserve its structure and unrelated user edits. README review is always required; a README edit is required only when the change affects reader-facing durable project knowledge.
+5. Do not stall the commit workflow over the README check. If no root README exists, it is already accurate, or the change has no reader-facing documentation impact, continue without editing it. Decide from the diff and existing documentation instead of pausing to ask whether an update is needed.
+6. Check whether the reviewed changes materially update durable project knowledge that future agents should know, such as architecture, workflows, routing, feature phases, operating constraints, or repo-specific conventions.
+7. If the answer is yes, update the project's memory file before any commit. Prefer the canonical source file when `AGENTS.md` or `CLAUDE.md` is a symlink or generated mirror. Preserve the existing format, tone, and section structure; keep the edit concise; record only stable guidance or milestones rather than transient implementation chatter.
+8. Partition the worktree into one or more coherent commits. Split by behavior or purpose, not by file count.
+9. If the user asks to "clean the worktree", plan to finish all reviewed remaining changes in this run, usually as multiple commits when the leftovers are unrelated.
+10. Decide the full commit plan up front. If the remaining files are unclear, mixed with unrelated user edits, or not safe to commit, stop before making any commit and ask.
+11. Stage only the files for the current commit. Prefer narrow pathspecs over broad staging when unrelated leftovers exist.
+12. If the wrong file is staged, unstage it and fix the boundary before committing.
+13. Draft the complete subject and body, then apply the commit-message safety gate below. Rewrite unsafe or uncertain details before running `git commit`.
+14. Commit with the repo convention:
 
 ```text
 :git_moji: TYPE: Commit description
@@ -34,7 +37,7 @@ Examples of `TYPE`:
 - `refactor` for behavior-preserving restructuring
 - `test` for test-only changes
 
-12. Continue committing the remaining reviewed file groups until `git status --short` is clean for the agreed scope.
+15. Continue committing the remaining reviewed file groups until `git status --short` is clean for the agreed scope.
 
 ## Memory Update Rules
 
@@ -95,6 +98,8 @@ What:
 
 ## Guardrails
 
+- Always inspect the root README, but do not create or change it merely to prove that the check happened.
+- Do not pause or leave an otherwise authorized commit unfinished solely because the README is missing, already current, or unaffected.
 - Do not commit before handling any required memory update.
 - Default to finishing the reviewed worktree in this run. Do not stop after the first commit if reviewed changes still remain.
 - Do not stage unrelated user changes unless the user explicitly asked to commit everything.
@@ -151,6 +156,7 @@ When issue B depends on issue A whose MR is still open: branch B **from A's bran
 
 ## Validation
 
+- Confirm the root README was inspected and that any reader-facing facts changed by the commit remain accurate. If no README exists or no edit is needed, treat the check as complete and continue.
 - If a memory update may be needed, inspect `AGENTS.md`, `CLAUDE.md`, and any linked source file before staging to determine the correct edit target.
 - After a memory edit, review that diff as part of the commit plan and confirm the link or generated-file relationship still holds.
 - After staging, run `git diff --cached --stat`.
