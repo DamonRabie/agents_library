@@ -1,25 +1,33 @@
 phase,check,failure_mode_prevented,rule
-interrogate,recon_before_questions,Asking the user what the repo already answers,Read code/configs/docs/schemas first; discoverable unknowns are never questions
-interrogate,three_bucket_sort,Question overload; user fatigue before design is done,Sort unknowns: discoverable→look up; defaultable→assumption ledger with default; user-owned→ask
-interrogate,question_budget,Endless interview rounds,Max 2 rounds and ~7 questions for a typical feature; excess questions are usually defaultable
-interrogate,recommended_answer_per_question,User has to design the answer themselves,Every question carries why-it-matters + a recommended answer; a good round can be approved with 'yes to all'
-interrogate,assumption_ledger_objection_pass,Silent assumptions discovered as bugs later,Present defaults as a ledger for one objection pass instead of asking more questions
-interrogate,decision_record_written,Decisions living only in chat scrollback,Phase 1 ends with a written Decision Record; Phase 2 consumes only that artifact
-design,zero_conversation_bar,Plan unusable by anyone who wasn't in the chat,A competent agent with no conversation access could implement from the plan alone
-design,contracts_frozen_exact,Two workers building incompatible halves,Every boundary written exactly: signatures API shapes DDLs config keys metric names CLI commands
-design,file_touch_map,No basis for issue file-ownership,Plan lists every path with create/modify and what changes
-design,dark_corners_sweep,Edge cases discovered by workers mid-run,Walk the sweep list (empty input idempotency concurrency time scale migration observability secrets failure rollback); N/A allowed silence not
-design,verification_strategy,Feature 'done' without proof,Plan states exact commands smoke path and expected outputs per change type
-design,plan_frozen,Workers editing the plan to match what they did,Plan immutable during execution; deviations reported in MRs; human amends between waves
-issues,issue_is_entire_world,Worker confusion from missing context,Issue written for a worker who never saw plan or conversation; all needed info in the body
-issues,copy_dont_reference,Missed details behind 'see plan section 3',Contracts decisions edge-case behaviors and examples pasted verbatim into the issue
-issues,no_paraphrase,Drift from reworded contracts,Exact names and signatures copied from the plan; paraphrase is where drift starts
-issues,seam_slicing,Issues cutting across code boundaries,Slice at frozen interface boundaries; each issue implements one side of a contract
-issues,exclusive_file_ownership,Parallel workers colliding in the same file,File-ownership table per wave; overlap → merge slices sequence them or extract a foundation issue
-issues,fewer_bigger_issues,Fragmentation confusion and integration bugs,Smallest number of issues under the size cap; never split mid-behavior (code + tests + wiring together)
-issues,foundation_first,Shared scaffolding duplicated across issues,One foundation issue for schemas/base classes/plumbing; everything else blocked_by it
-issues,traceability_table,Plan details missing from every issue,Every plan item maps to exactly one issue with verbatim text; any gap fixed before dispatch
-issues,do_not_touch_section,Workers wandering outside scope,Every AFK issue lists files and behaviors it must leave alone
-issues,how_to_verify_commands,Untestable 'it should work' ACs,Exact verification commands with expected output in every issue
-dispatch,dependency_recheck_at_claim,Claiming on stale plan-time state,Verify blocked_by issues actually merged/closed immediately before each claim
-dispatch,stacked_branches,Dependent branch created from master dropping blocker work,Branch from the blocker's branch; MR targets it; retarget after merge
+analysis,recon_before_questions,Asking questions answered by the repository,Read conversational context and discover relevant technical facts; clarify vague intent before broad inspection; do not infer user goals from code.
+analysis,adaptive_interview,Premature decomposition or an exhausting questionnaire,Ask the highest-impact unresolved question or small related group; follow up on answers; skip settled subjects; use concrete scenarios to expose ambiguity.
+analysis,question_value,Question quotas or unnecessary follow-up turns,Ask only when the answer could materially change goal/scope/design/acceptance/next iteration; otherwise state a reversible assumption or defer the detail.
+analysis,readiness,Endless interviewing or a plan built on hidden assumptions,Synthesize outcome/scope/approach/constraints/success evidence; proceed when material decisions are clear and remaining uncertainty is bounded; no ritual approval turn.
+analysis,intent_vs_evidence,Turning unresolved user intent into a research ticket,Resolve consequential intent conversationally; use bounded investigation for empirical unknowns; keep proposed defaults distinct from user decisions.
+analysis,interview_exit,Continuing to interrogate after the user asks for a draft,Honor a request to stop questions with a provisional plan and explicit assumptions; do not claim unresolved choices were agreed.
+analysis,evidence_based_coverage,Duplicating existing work or assuming integration works,Give requirements stable IDs and covered/partial/missing/unverified status with evidence.
+analysis,workflow_map,Overlooking lifecycle and consumer behavior,Map actors; transitions; external boundaries; failure/recovery paths; final observable outcome.
+design,shared_contracts,Incompatible slices or invented implementation details,Specify cross-slice inputs/outputs and invariants; distinguish observed facts from proposed design.
+design,bounded_discovery,Freezing a design before empirical uncertainty is resolved,Give research a question; investigation limit; evidence; decision rule; affected follow-up slices.
+iterations,outcome_before_issues,Ticket lists replacing project planning,Plan coherent capability or learning increments before issue bodies; an iteration can contain several vertical issues.
+iterations,review_and_adapt,Executing a fixed backlog despite new evidence,Give each iteration evidence and a next-step rule; revise later iterations after review; use ordinary acceptance for predictable work.
+iterations,progressive_detail,Overdesigning future work or losing final scope,Detail the next iteration; account for remaining scope with conditional outcomes and prerequisites; do not freeze decisions that depend on earlier results.
+issues,vertical_slice,Layer tickets that deliver no usable behavior,Slice by consumer scenario through every needed layer; include wiring and verification.
+issues,walking_skeleton,Large foundations delaying useful evidence,First delivery slice proves a narrow real input-to-consumer path with minimal necessary setup.
+issues,correctness_in_first_slice,Deferring essential protections to hardening,Include authorization and retry/concurrency correctness when the exposed behavior needs them.
+issues,behavior_based_sizing,Oversized tickets or fragmented implementation layers,Split independent behaviors; merge fragments that cannot be demonstrated separately; use uncertainty and reviewability.
+issues,supporting_work_exception,Automatic schema/config/foundation tickets,Separate enablement only for a concrete boundary; name immediate consumer and independently verifiable exit condition.
+issues,self_contained_context,Workers missing decisions from conversation,Embed relevant requirements and exact shared contracts; link broader context without copying the entire plan.
+issues,honest_verification,Invented commands or smoke proof presented as full proof,State actual command/procedure and expected evidence; mark unknown commands and unavailable environments.
+issues,bounded_human_gate,Unlimited HITL tasks and unnecessary approval rituals,Name the human decision and evidence; permit independent work within existing authorization.
+audit,dependency_reason,Unnecessary chains or hidden prerequisites,Each hard dependency names the artifact/capability/decision and release condition it provides.
+audit,coordination_separate,File layout dictating product issue boundaries,Track shared edits and resource constraints separately from hard dependencies; coordinate execution.
+audit,many_to_many_coverage,Shared requirements and invariants lost between issues,Map every requirement to delivery owners and a final proof owner; repeat relevant invariants in affected slices.
+audit,prefix_check,Intermediate tickets produce no usable capability,Demonstrate each delivery slice after its prerequisites; justify supporting exceptions.
+audit,deletion_check,Duplicate or unnecessary issues,Remove each issue mentally and explain what required outcome would be lost.
+audit,integration_owner,Hidden final wiring or operational work,Assign consumer wiring and final composition proof; preserve tests inside each slice.
+audit,complete_scope,Conditional later work silently disappears,Account for all requested requirements; keep decision-dependent slices provisional with explicit gates.
+delivery,coherent_revision,User corrections leave stale plans or dependency graphs,Update affected design decisions; iterations; contracts; coverage; bodies; and dependencies together while preserving stable IDs.
+delivery,proportional_artifacts,Creating documents and a full backlog for every planning conversation,Deliver shared understanding and iteration map first; create durable files and detailed issues only to the depth requested.
+delivery,publication_readback,Duplicate issues or incorrect tracker dependencies,Prepare bodies; publish only when authorized; use returned IDs; read back links; reconcile partial failures before retrying.
+execution,prerequisite_evidence,Closed issues treated as proof of readiness,Recheck actual artifact and integration state before execution; issue closure alone is insufficient.

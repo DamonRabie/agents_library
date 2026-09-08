@@ -26,6 +26,15 @@ Use this file to keep a durable record of provenance even when the local asset h
 
 ## Registered Sources
 
+## idea-to-issues
+- Type: skill
+- Path: skills/idea-to-issues/SKILL.md
+- Status: adapted
+- Source: Local archived grill-me skill and existing vertical-slicing workflow
+- URL: unavailable local source; archive/grill-me/SKILL.md
+- License: unknown
+- Notes: Incorporates the archived skill's adaptive interviewing and planning lenses into the active planning workflow. Replaces its strict one-decision-per-turn approach with sufficient questioning and explicit readiness conditions, then plans iterations before executable issues. The active skill is self-contained and does not require loading archived skills.
+
 ## blueprint
 - Type: skill
 - Path: skills/blueprint/SKILL.md

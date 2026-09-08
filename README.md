@@ -123,7 +123,7 @@ Some skills also bundle agent definitions under `skills/<name>/agents/`.
 | `prove-it` | Verification / acceptance criteria | Every repo |
 | `ci-deploy` | Docker, CI/CD, VPS deploy | Every repo |
 | `mr-review` | Code review (all languages) | Every repo |
-| `idea-to-issues` | Interrogate → design → issues | Every repo |
+| `idea-to-issues` | Adaptive interviewing, clear plans, iterations, and vertical issues | Before development or when a plan needs clarification |
 | `agent-ready` | Repo auditing and repair | Every repo (run first on a new repo) |
 | `commit` | Git commit discipline + rescue recipes | Every repo |
 | `data-warehouse` | ClickHouse OLAP, SQL quality | Data warehouse repos |

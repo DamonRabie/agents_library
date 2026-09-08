@@ -1,309 +1,176 @@
 ---
 name: idea-to-issues
-description: "Interrogate ambiguous product or technical ideas, turn decisions into a design document and implementation plan, then slice the work into self-contained, dependency-aware issues for agent execution. Use when the user asks to shape or scope a feature, write a PRD or plan, or turn an idea into issues. Do not use for straightforward implementation with already-fixed requirements."
+description: "Plan work before development: clarify ideas through sufficient, adaptive interviewing, expose assumptions and tradeoffs, and shape useful iterations before detailing vertical issues. Use for new projects, complex features, design discussions, implementation planning, or repairing unclear plans and backlogs. Skip renewed discovery for straightforward implementation with settled requirements."
 ---
-# Idea-to-Issues — Design Work Completely Before Agents Execute It
+# Idea to Issues
 
-Converts a vague idea into issues that agent workers execute without confusion. Three phases: **interrogate → design & plan → issues**. The two failure modes this skill exists to prevent:
+Help the user reach a shared, clear understanding of what to build, why, and how to approach it. Interview until the consequential decisions are clear, then organize development into useful iterations with evidence and review points. Write executable issues when needed for the requested handoff.
 
-1. **Interrogation waste** — asking many questions the repo or a sensible default could answer, exhausting the user before the design is done.
-2. **Worker confusion / missed details** — decisions that live only in the conversation or the plan never reach the issue the worker actually reads, or issues are split across code seams so workers collide or lose context.
+The primary output is a clear plan. Question count, document length, and ticket count are not measures of success. Make relevant angles visible without turning every angle into a question. Clarity means agreed intent and explicit uncertainty, not certainty about every future implementation detail.
 
-The cures are structural: a **question budget with an assumption ledger** in Phase 1, a **contract-level implementation plan** in Phase 2, and **self-contained issues with a traceability check** in Phase 3.
+A **vertical slice** delivers one narrow behavior through every layer needed to make it work. It includes its wiring, relevant failure handling, tests, and operational evidence. For backend, data, infrastructure, and ML work, the consumer may be another system or an operator; a UI is not required.
 
-## When to Apply
+## Choose the depth
 
-### Must Use
+- **Idea or new project:** establish intent, interview adaptively, synthesize the design, then plan iterations. A repository may not exist yet.
+- **Existing PRD or plan:** preserve settled decisions, but check for consequential gaps and contradictions. A polished document is not evidence that its assumptions were agreed. Interview only about what remains unclear.
+- **Existing backlog:** evaluate the whole set against the outcome; merge, split, or reorder only where needed. Preserve existing identifiers and explain replacements.
+- **Small bounded request:** one issue can be the right answer. Do not manufacture a PRD, epic, or foundation phase.
 
-- Starting any new feature, module, or experiment when intent is not yet precise
-- Converting a conversation, plan, or idea into issues for agent execution
-- Any time the user says: "I want to build X", "help me plan", "design this", "create issues for this"
-- Before dispatching agent workers — unshaped issues cause scope creep and wasted runs
+Match artifacts to the request. Default to a conversational plan and iteration map; do not create files or full issue bodies merely because the skill is named idea-to-issues. For a requested durable handoff, keep the agreed design, iterations, and relevant issues together or linked. Planning does not itself authorize implementation, worker dispatch, or tracker changes.
 
-### Recommended
+## 1. Understand the outcome and current system
 
-- When a feature request has hidden assumptions or unclear acceptance criteria
-- Before a large refactor, to fix scope before any code changes
+Before drafting iterations or issue titles:
 
-### Skip
+1. Read the conversation and supplied material first. When a repository is relevant, read its instructions and trace the actual route from trigger/input through processing and state to the consuming surface. Inspect relevant tests and contracts, not just directory names. If intent is too vague to guide inspection, clarify it first; do not conduct an exhaustive repository audit before engaging the user.
+2. State the target in observable terms: **who or what can do what, under which conditions, and what evidence proves it?** Preserve explicit constraints and non-goals.
+3. Map the workflow or lifecycle, including material failure/recovery paths. Identify actors, state transitions, external boundaries, and existing components to reuse. For refactors, identify callers and behavior that must remain compatible.
+4. Capture requirements as they become clear; use stable local IDs (`R1`, `R2`, ...) when needed to track a complex plan. Record current coverage as `covered`, `partial`, `missing`, or `unverified`, with evidence. Code presence alone does not prove integration or live behavior. Verify uncertain coverage where possible; otherwise keep the gap explicit.
+5. Separate facts, proposed design, assumptions, and unresolved decisions. Record only the decisions that affect scope, contracts, acceptance, or sequencing.
 
-- Small one-liner fixes with clear scope — just implement them
-- Issues that already have complete, self-contained specs
+Discover technical facts available in code or documentation. User goals, priorities, and acceptable tradeoffs need conversational evidence; do not infer them from the current implementation.
 
-## The Three-Phase Workflow
+## 2. Interview until the plan is sufficiently clear
 
-```
-Phase 1: INTERROGATE   →   Phase 2: DESIGN & PLAN   →   Phase 3: ISSUES
-(grill-me)                 (to-prd)                     (to-issues)
-Decision Record            PRD + Implementation Plan    Self-contained issues
-```
+Use the interview to develop and challenge the idea, not just collect missing fields. Start with the uncertainty that most affects the direction. Translate vague terms such as "automatic", "better", or "production-ready" into a concrete scenario, boundary, or success condition. Ask for an example or counterexample when it would reveal a different interpretation.
 
-Each phase produces a written artifact; the next phase consumes only that artifact. This is deliberate: **if the artifact isn't sufficient for the next phase, it isn't sufficient for a worker either.** For a clear request with enough context, Phase 1 can collapse to a short assumption ledger presented for confirmation — never skip the ledger itself.
+For each round:
 
----
+- Briefly state what is understood and the consequential gap. Ask one focused question, or a small group of closely related questions the user can comfortably answer together. Avoid a large questionnaire or serializing every minor detail into a separate turn.
+- Explain the consequence of the choice. Offer a recommendation and alternatives when evidence supports them; leave room for the user to frame a different answer. Do not conceal a major design choice inside a suggested default.
+- Use the answer to revise the working understanding and choose the next question. Follow up on ambiguity or contradictions; skip subjects already resolved by the conversation or evidence. Do not mechanically walk a fixed question list.
+- Await answers before settling dependent choices. Continue independent investigation where useful. Silence is not agreement, and a proposed answer is not a user decision.
 
-## Phase 1: INTERROGATE (Grill-Me)
+Consider the relevant angles: intended users and value; concrete journeys; scope and non-goals; inputs and outputs; ownership and system boundaries; state/data semantics; alternatives and tradeoffs; failure and recovery; success/evaluation; cost and operational constraints. These are thinking lenses, not mandatory questions. Explain a discovered risk or recommend a solution when a question would add no useful decision.
 
-**Goal:** every decision that shapes the design is either made or explicitly defaulted — with the minimum number of questions.
+Before asking another question, identify what its answer could change in the goal, scope, design, acceptance, or next iteration. If it would not materially change any of these, use an explicit reversible assumption, defer it to implementation, or omit it. Revisit settled choices only when new evidence or a user correction matters. There is no minimum or maximum question count.
 
-### The Question Economy (the core discipline)
+## 3. Synthesize the plan and check readiness
 
-Before asking anything, do **recon**: read the repo, configs, docs, schemas, and prior art. Then sort every unknown into one of three buckets:
+Once the material gaps appear resolved, explain the project back to the user in concrete terms: intended outcome and representative journey, scope/non-goals, proposed approach and important tradeoffs, constraints, success evidence, and remaining uncertainty. Keep this synthesis proportional to the project. Distinguish user decisions, verified facts, recommendations, and assumptions.
 
-| Bucket | Definition | Action |
-|---|---|---|
-| **Discoverable** | The answer exists in code, data, docs, or can be measured | Look it up. NEVER ask. |
-| **Defaultable** | A sensible default exists and being wrong is cheap to fix later | Put it in the **assumption ledger** with your chosen default. Don't ask. |
-| **User-owned** | Product intent, business tradeoff, taste, access/credentials, or being wrong is expensive | Ask. |
+The plan is ready to decompose when:
 
-**Budget:** at most **2 question rounds** and **~7 questions total** for a typical feature (one round of ≤3 for something small; a third round only for genuinely large projects). If you are about to exceed the budget, the excess questions were probably defaultable — default them.
+- The outcome, consumer, and scope are clear enough to distinguish success from a plausible but wrong implementation.
+- The main route and relevant boundaries are understandable, and consequential alternatives or contradictions have been addressed.
+- Acceptance and the first useful outcome or learning objective are concrete.
+- Remaining unknowns are either reversible details, explicitly deferred choices that do not invalidate the next iteration, or empirical questions with a bounded investigation and decision rule.
 
-**Per round:**
-- Batch **related** questions together (≤3–4 per round); ask one-at-a-time only when the answer changes what you'd ask next.
-- Every question states in one line *why it matters* and offers a **recommended answer** — the user should be able to reply "yes to all" to a good round.
-- Order by impact: decisions that change the architecture first; polish decisions never (default them).
+Resolve a material mismatch in this synthesis before treating the affected plan as settled. When the user's prior answers already establish these points, continue to iterations in the same response; do not add a ritual approval turn. When intent remains unresolved, stay in discovery for that scope. Do not turn a question the user needs to answer now into a ticket to make the plan appear complete. If the user explicitly asks to stop interviewing, provide a provisional plan with visible assumptions and affected branches, without claiming unresolved choices are agreed.
 
-**Interrogation lens** — check these axes for user-owned decisions (not as questions to ask verbatim):
+Describe the proposed end-to-end route and compare alternatives where they change cost, risk, or boundaries. Avoid specifying every internal function before implementation.
 
-| Axis | Key question |
-|---|---|
-| Scope | What is explicitly out of scope? |
-| Data contract | What schema/artifact/API does this touch or freeze? |
-| Failure & rollback | What happens when it breaks? What's the undo? |
-| Done gate | What measurable check proves it works? |
-| Dependencies | What must already be true? |
-| Execution mode | Agent-executable AFK, or human judgment needed where? |
-| ML/data specific | Controlled experiment or production change? Hypothesis? |
+Agree the contracts that different slices or repositories must share: inputs/outputs, identifiers, state transitions, errors, compatibility, data semantics, and ownership. Use exact established names and shapes where necessary. Mark unverified paths or commands as proposed; never invent repository evidence.
 
-### Output: the Decision Record
+Consider applicable failure modes: empty or malformed inputs, retries and duplicate writes, concurrency and stale results, time semantics, external outages, permissions, scale/cost, migration/backfill, observability, and rollback. Assign essential protections to the first slice that exposes the risk. Deferring polish must not create unsafe or incorrect intermediate behavior.
 
-Phase 1 ends with a short written record — this, not the chat scrollback, feeds Phase 2:
+If an empirical unknown could invalidate the design, create a bounded **discovery** item: question, investigation limit, evidence to produce, decision rule, and affected follow-up work. Do not disguise research as an implementation issue with a guessed solution. Detail near-term slices; keep decision-dependent future work provisional until results are available.
 
-```markdown
-## Decision Record: <feature>
-### Decisions (user-confirmed)
-- <decision>: <choice> — <why>
-### Assumptions (defaults taken; object to change)
-- <assumption>: <default chosen> — <cost if wrong: low>
-### Out of scope
-- <exclusion>
-### Open risks
-- <risk that design must mitigate>
-```
+## 4. Plan iterations before detailed issues
 
-**Stop condition:** stop interrogating when remaining unknowns no longer change the design. Present the assumption ledger for a single objection pass instead of asking more questions.
+An **iteration** is a coherent increment of useful capability or learning, ending in evidence that informs the next step. It can contain one or several vertical issues. An issue is an executable unit within that increment; an iteration is not a synonym for an issue, epic, fixed calendar sprint, or technical layer.
 
----
+Choose the first iteration to deliver the smallest useful real outcome or resolve an uncertainty that could change the project. A bounded experiment can precede the first delivery slice when feasibility is unknown. Account for the whole intended scope, but detail the next iteration more deeply than later ones; keep evidence-dependent work conditional.
 
-## Phase 2: DESIGN & PLAN (To-PRD)
+For each iteration, state:
 
-**Goal:** a design that has considered every angle, plus an implementation plan a competent agent could execute **with zero access to this conversation**. That sentence is the quality bar for the whole phase.
+- **Outcome and scope:** what the user or consumer can do afterward, or what decision the evidence enables; what is deliberately deferred.
+- **Rationale and prerequisites:** why this comes next, what uncertainty it addresses, and which capability, artifact, or decision it needs.
+- **Evidence and review:** a demonstration, acceptance check, or experiment result; who evaluates it when human judgment is needed.
+- **Next-step rule:** what would justify continuing, changing direction, repeating a bounded investigation, or stopping. Use ordinary acceptance for predictable work; do not invent an experiment for every feature.
 
-Produce ONE document with two parts (or two files if the repo convention prefers): the **PRD** (why/what) and the **Implementation Plan** (how).
+Use a compact iteration map for complex projects. Read [references/planning-examples.md](references/planning-examples.md) when calibrating interview depth or the boundary between iterations and issues. Keep independent branches independent; milestones may group iterations but do not replace their evidence and feedback points.
 
-### Part A — PRD (compact)
+## 5. Decompose ready iterations by behavior
 
-```markdown
-# PRD: <Feature Name>
-## Problem
-<1-3 sentences: what breaks or is missing today>
-## Solution
-<1-3 sentences: what this builds>
-## User Stories
-1. As a [persona], I want [action] so that [outcome]. AC: [measurable condition].
-## Decisions & Out of Scope
-<carried from the Decision Record>
-## Acceptance Gates
-- [ ] <measurable, executable check>
-```
+Read [references/vertical-slicing.md](references/vertical-slicing.md) when creating or repairing a multi-issue breakdown. It contains the slicing procedure, exceptions, and worked examples.
 
-### Part B — Implementation Plan (the worker-facing truth)
+Start delivery with a **walking skeleton**: the smallest real path from input to useful output using the intended integration boundaries. It may support one input type, one consumer, or one workflow variant. Shared setup belongs here when it is needed to demonstrate this path. Research may precede delivery as described above.
 
-```markdown
-# Implementation Plan: <Feature Name>
-## Architecture
-<components and data flow; a small ASCII diagram beats prose>
+Expand by one coherent scenario, lifecycle transition, supported variant, or operating capability at a time. Each delivery issue should complete this sentence:
 
-## Interface Contracts (FROZEN)
-<every boundary written EXACTLY: function signatures, API request/response
- shapes, table DDLs, file formats, config keys, metric names, CLI invocations.
- These are copy-paste sources for issues — precision here is what prevents
- two workers building incompatible halves.>
+> After this issue and its prerequisites, <consumer> can <new behavior>; demonstrate it by <observable check>.
 
-## File Touch Map
-| Path | Action (create/modify) | What changes |
+If the sentence only says a table, service, or component exists, reconsider the boundary. Technical deliverables qualify when they are the requested consumable outcome, such as a published API, an operator recovery command, or a compatible library migration.
 
-## Execution Order
-Phase/step list with gates: what must be true before the next step starts.
+For each candidate slice:
 
-## Edge Cases & Failure Handling
-<from the Dark Corners sweep below — each one with its decided behavior>
+- Include all necessary layers and integration work, plus tests and relevant docs/config. Do not defer its wiring or correctness to a final integration/testing ticket.
+- Keep one coherent acceptance story. Split oversized work by narrower behavior, input population, or lifecycle path; do not split database/backend/frontend/tests into separate tickets merely to shrink it.
+- Merge fragments that cannot demonstrate an outcome without one another. Do not merge unrelated behaviors just because they touch the same file.
+- Keep independently reviewable enablement, migration, or discovery work separate only for a concrete reason. Name its immediate consumer, deliverable, verification, and why it cannot reasonably live in that consumer's slice.
+- Bound human decision items too: specify the decision, evidence, responsible role, and what it unblocks. `HITL` is not permission for an unlimited issue.
 
-## Verification Strategy
-<how the whole feature is proven: commands, smoke path, expected outputs —
- per change type (see prove-it skill)>
+Size by outcome count, uncertainty, integration boundaries, verification cost, and reviewability. Time estimates are secondary and explicitly approximate. Aim for a focused change/review per issue, not a universal day limit or a target ticket count.
 
-## Rollback
-<how to undo if it goes wrong in production>
-```
+## 6. Sequence and audit the whole set
 
-### The Dark Corners Sweep (consider every angle)
+Create the slice map before expanding issue bodies:
 
-Before the plan is final, walk this list and write the decided behavior for every applicable item — "N/A" is an acceptable answer, silence is not:
+| ID / kind | Iteration | Newly possible behavior or decision | Requirements | Prerequisites and reasons | Demonstration | Readiness |
+|---|---|---|---|---|---|---|
+| S1 / delivery | I1 | Narrow real path | R1 (partial) | None | Input reaches consumer | Ready |
+| S2 / delivery | I1 | Additional scenario needed for I1's outcome | R1 (complete), R2 | S1: consumes its stable contract | Scenario works through consumer | Ready after S1 |
 
-- **Empty/null/malformed input** — first run with no data; missing fields; encoding (non-Latin text, mixed languages)
-- **Idempotency & retries** — what happens when any step runs twice or dies midway
-- **Concurrency** — two runs at once; shared-table or shared-file collisions
-- **Time** — timezone, calendar (non-Gregorian dates), DST, late-arriving data, clock of record
-- **Scale & cost** — 10× data volume; API/token cost at full size; rate limits
-- **Migration & backfill** — existing data; schema evolution; how history gets filled
-- **Observability** — what gets logged; how a stuck run is distinguished from a slow one
-- **Security & secrets** — where credentials come from (env, never code); what must not be committed
-- **Failure surface** — external dependency down; partial failure; what the user sees
-- **Rollback** — the concrete undo, tested in thought before needed
+Use stable IDs while revising. `Ready` means the issue has enough information to execute once named prerequisites hold; decision-blocked work stays provisional.
 
-### Plan Rules
+For a large initiative, retain the iteration map above the issue breakdown; capability milestones or epics can group related outcomes. An epic is an outcome container, not a giant worker assignment. Identify the critical path and first useful milestone without forcing unrelated branches into identical waves.
 
-- The plan is **frozen during execution** — workers never edit it to match what they did; deviations are reported in MRs and the human amends the plan between waves.
-- No detail may live only in the conversation. If it was decided, it is in the Decision Record or the plan.
-- Use the project's domain language; avoid brittle file paths except where the contract would otherwise be ambiguous.
+Distinguish dependencies:
 
----
+- **Hard prerequisite:** a required artifact, capability, or decision. Record what it provides and the condition for release; avoid unexplained `blocked_by` lists.
+- **Coordination constraint:** overlapping files, migrations, deployments, or exclusive resources. Sequence or coordinate these without pretending they are product dependencies.
+- **Preference:** a desirable order that does not block execution.
 
-## Phase 3: ISSUES (To-Issues)
+Check for cycles, missing prerequisites, excessive fan-in, and a giant foundation that delays the first useful outcome. File overlap informs scheduling after slicing; it does not define the slices. Cross-repository slices need explicit contract ownership and coordinated reviews, or separately verifiable producer/consumer issues with a visible integration owner.
 
-**Goal:** slice the plan into issues an agent executes without confusion, with zero details lost between plan and issues.
+Build requirement coverage separately from the dependency graph:
 
-### Rule 0 — The Issue Is the Worker's Entire World
+| Requirement / final acceptance gate | Existing evidence | Delivery owner(s) | Final proof owner | Gap or deferral |
+|---|---|---|---|---|
 
-Write every issue as if the worker has **never seen the plan, the PRD, or this conversation**. Everything needed to execute lives in the issue body:
+A requirement may need multiple issues. Shared invariants belong in every affected issue; name the issue responsible for proving their composition. Each required behavior needs an owner or an explicit unresolved gap. Do not silently turn requirements into non-goals. A requested full breakdown must account for later work even when its details remain provisional.
 
-- **Copy, don't reference:** the relevant interface contracts, decisions, edge-case behaviors, and example inputs/outputs are pasted **verbatim** into the issue. A link to the plan is context, never a substitute — "see plan section 3" is how details get missed.
-- Exact file paths to create/modify, exact commands to run, exact metric/config/table names — copied from the plan's frozen contracts, never paraphrased (paraphrase is where drift starts).
+Run these challenges before accepting the set:
 
-### Slicing Rules — cut along seams, not layers
+1. **Prefix check:** after each delivery slice and its dependencies, what new behavior actually works? Supporting work needs its explicit exception rationale.
+2. **Deletion check:** remove each issue mentally. If the final outcome still holds, is that issue optional, duplicate, or outside scope?
+3. **Integration check:** do outputs reach their intended consumers? Is any wiring, migration, rollout, recovery, or whole-flow proof ownerless?
+4. **Sizing check:** can each issue be reviewed and verified as one coherent change? Does any ticket contain several independently useful outcomes?
+5. **Coverage check:** do the issues plus existing evidence satisfy the original outcome and constraints, including failure cases? Explain any unmet requirement.
+6. **Iteration check:** does each iteration end in useful evidence, and can that evidence change later work? Are conditional choices still conditional, and does the first iteration have enough clarity to begin?
 
-1. **Slice at interface boundaries fixed in the plan.** Each issue implements one side of frozen contracts; the contract text appears verbatim in every issue that touches it, so independently-built halves fit.
-2. **File ownership is exclusive per wave.** Two concurrently-runnable issues must never modify the same file. Build a file-ownership table from the plan's File Touch Map; if two slices need the same file, either merge the slices, sequence them (`blocked_by`), or move the shared change into an earlier foundation issue.
-3. **Prefer fewer, larger, coherent issues.** Fragmentation confuses workers more than size does: every extra issue re-pays context setup and multiplies integration points. Split only when (a) the size cap is truly exceeded, (b) a human gate is needed between parts, or (c) parallelism across *different files* is actually wanted. Never split mid-behavior ("model + its tests + its wiring" is one issue, not three).
-4. **Foundation first.** Shared scaffolding (schemas, base classes, config plumbing) is one issue that everything else is `blocked_by` — not repeated fragments of it in every issue.
+## 7. Write issues when the handoff needs them
 
-### Detail Traceability Check (the missed-details killer)
+Use [references/issue-template.md](references/issue-template.md). Include enough context for a worker with repository access but no planning conversation. Embed the relevant contract and decision details; link to canonical sources for broader context. Do not copy the entire plan into every issue.
 
-After drafting issues and **before dispatching anything**, build this table and fix every gap:
+Each issue identifies its outcome, scope/non-goals, prerequisites, relevant interfaces, acceptance checks, and verification evidence. Use verified code entrypoints as navigation aids; distinguish them from proposed files. Do not prescribe internal edits that inspection has not justified.
 
-| Plan item (decision / contract / edge case / AC) | Covered by issue | Verbatim in issue body? |
-|---|---|---|
-| <every numbered item from the plan> | ISSUE-NNN | yes / NO → fix |
+Acceptance describes observable behavior, including applicable negative paths. Verification states the command or procedure, expected result, and required environment/data/access. Distinguish local smoke proof, integration proof, live proof, and human judgment. If a command is unknown, describe the required check and mark command discovery explicitly; do not claim a guessed `make verify` proves it.
 
-Every plan item maps to **exactly one** issue (foundation items may map to the foundation issue). Any row with no issue, or with "referenced but not copied," is a defect in the breakdown — fix it now, not after a worker misses it.
+Classify execution separately from issue kind:
 
-### Coverage Map (what already exists)
+- **AFK:** specified implementation/investigation and verification can proceed without an unresolved human decision, within existing permissions. This does not imply permission to merge, deploy, or run expensive jobs.
+- **HITL:** a named human decision or approval is necessary. State the exact gate and which work may proceed before it.
 
-Before drafting, check the repo: for each plan requirement mark `covered` / `partial` / `missing`. Only create issues for `missing` and `partial`.
+For data/ML work, define the hypothesis or consumer outcome, source/label/split semantics, artifact contract, and evidence needed for the next decision. Separate code smoke validation, full execution, and promotion when their environments or approval needs differ. Schedule resource contention by actual capacity; do not automatically serialize unrelated heavy work or require a human to launch every training run.
 
-### Issue Anatomy
+## 8. Deliver and revise the plan
 
-```markdown
----
-title: "ISSUE-NNN: <verb + noun + outcome>"
-type: AFK | HITL
-resource: light | warehouse-heavy | gpu-heavy
-blocks: [ISSUE-NNN, ...]
-blocked_by: [ISSUE-NNN, ...]
----
+Present the shared understanding and consequential decisions first, then the iterations and their review points, remaining assumptions/unknowns, and the concrete next step. Include the slice map, requirement coverage, and issue bodies to the depth requested. A planning conversation can finish with a clear iteration plan without generating a backlog. Do not end with another question once the readiness conditions are met.
 
-## Context
-<why this slice exists; what the larger goal is — 1 paragraph, self-sufficient>
+When authorized to publish, prepare complete reviewable bodies first, confirm the target tracker and its conventions, and reuse verified existing issues. If publication is not authorized, finish the local drafts before requesting it. Use actual returned issue IDs, update dependency references, and read back the final bodies and links. After partial failure, reconcile what exists before retrying to avoid duplicates. Do not invent labels or change unrelated workflow state.
 
-## Contracts (verbatim from plan)
-<signatures, schemas, names this issue must implement or consume — EXACT text>
+At an iteration review, compare the observed evidence with its acceptance or learning objective, then revise the next iteration before expanding its issues. User corrections or new evidence may also require revisiting the design; update affected contracts, iterations, issues, coverage, and dependencies together. Preserve requirement and issue IDs where possible and record superseded decisions. Workers should surface contract conflicts rather than silently change shared expectations; resolve reversible implementation details within the authorized scope. Re-check actual prerequisite artifacts and integration state before execution: a closed issue alone is not proof.
 
-## Files
-| Path | Action | Owned by this issue |
+## Searchable checks
 
-## Steps
-<ordered implementation steps when the path matters; omit for truly obvious slices>
-
-## Acceptance Criteria
-1. Given X, when Y, then Z is measurably true.
-(every AC executable as a test, command, or `make verify` check)
-
-## How to Verify
-<the exact commands the worker runs, with expected output>
-
-## Out of Scope / Do NOT Touch
-<files and behaviors this issue must leave alone — as important as the scope>
-```
-
-### Issue Sizing Rules
-
-| Slice type | Size rule | Rationale |
-|---|---|---|
-| AFK (agent executes alone) | ≤ 1 day of work | Larger scope → higher error rate per run |
-| HITL (human judgment needed) | No size constraint | Human gates the loop |
-| Data/schema change | Own issue, first | Schema must be reviewed before dependent logic |
-| Test-only issue | Only if tests are the full deliverable | Never "add tests" as a follow-on |
-| Infra/config change | Own issue | Needs separate CI verification |
-
-### AFK vs HITL Classification
-
-**AFK:** agent can implement, verify (tests + `make verify`), and open an MR without human judgment — well-defined endpoint from a schema, DAG following an established pattern, bug fix with reproduction, behavior-preserving refactor.
-
-**HITL:** human judgment inherently required — product/taxonomy decisions, architecture choices, data labeling/quality judgment, security audit, legal/compliance, full training runs and results analysis.
-
-### Dependency Conventions
-
-```
-Blocks: [ISSUE-002]      # must complete before 002 starts
-Blocked by: [ISSUE-001]  # cannot start until 001 done
-```
-
-No circular dependencies — draw the DAG before finalizing. Issues runnable in parallel must have disjoint file ownership (see Slicing Rule 2).
-
-### Wave Slicing (ML experiments / multi-phase builds)
-
-```
-Wave 1: foundation (data contract, schema, smoke infrastructure)
-  └── Gate: Wave 1 ACs pass; human reviews
-Wave 2: core logic (training pipeline, feature logic, main API)
-  └── Gate: Wave 2 metrics meet threshold; human reviews
-Wave 3: optimization and productionization
-  └── Gate: promotion criteria met
-```
-
-Agents do not proceed to Wave N+1 until the human gates Wave N.
-
-### ML-Training Issue Rules (for plans that include model training)
-
-1. **All training-code development for a wave goes in ONE issue** — don't split model variants of the same wave unless one variant's code depends on another's *results*.
-2. **The worker's deliverable is code + passing smoke runs only.** Full trainings outlive worker timeouts and occupy the GPU — the human launches them (or the worker starts them in a named tmux session on the remote machine and hands off; see remote-ops).
-3. **Results analysis is a separate HITL gate**, not part of the training issue.
-4. **State the hypothesis on every experiment issue** — one line: what this wave tests and what result would change the plan.
-5. **Resource classes:** label issues light / warehouse-heavy / gpu-heavy. At most one heavy issue runs at a time; light issues may run in parallel in worktrees. Skip, don't reshuffle agreed priorities.
-
-### Dispatch-Time Rules (when workers execute)
-
-- **Re-check dependencies at claim time:** before claiming, verify every `blocked_by` issue is actually merged/closed — plan-time state goes stale.
-- **Stacked branches:** if issue B is blocked by A and A's MR is unmerged, B branches from A's branch (MR targets A's branch), never from master. See the commit skill's stacked-branch recipe.
-- **Workers never merge to master without review** unless the issue is explicitly auto-mergeable; the default gate is an open, reviewable MR per issue.
-- **The plan document is frozen during execution** — deviations go in the MR description, not into the plan.
-
-### Pre-Dispatch Checklist
-
-- [ ] Traceability table complete — every plan item verbatim in exactly one issue
-- [ ] File-ownership table has no overlap between parallel issues
-- [ ] Every AC is falsifiable and executable; "How to Verify" commands present
-- [ ] Contracts pasted verbatim (not paraphrased, not referenced-only)
-- [ ] Out of Scope / Do NOT Touch present on every AFK issue
-- [ ] Dependency DAG drawn; no cycles; heavy issues serialized
-- [ ] Worker prompt names the repo memory file and relevant skills; no secrets inline
-
-## Search
+From this skill directory:
 
 ```bash
-python scripts/search.py "<query>"
-# e.g.: python scripts/search.py "self contained issue"
-#       python scripts/search.py "question budget"
-#       python scripts/search.py "traceability"
+python scripts/search.py "vertical slice"
+python scripts/search.py "dependency"
 ```
+
+The CSVs contain compact review reminders. The workflow and linked references explain how to apply them.
