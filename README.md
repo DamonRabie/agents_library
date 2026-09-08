@@ -136,6 +136,30 @@ Some skills also bundle agent definitions under `skills/<name>/agents/`.
 
 **Archive:** all other downloaded skills are in `archive/`. Source reference material, never symlinked.
 
+## Plan Before Development
+
+Use [idea-to-issues](skills/idea-to-issues/SKILL.md) as the starting point for a new project or complex feature, or when an existing plan needs clarification. Share the idea, existing context, and any constraints; a polished brief or repository is not required.
+
+For example:
+
+```text
+Use idea-to-issues to help me plan this project: <describe the idea>.
+Clarify the important decisions with me, then break the work into useful iterations.
+```
+
+The workflow moves through four stages:
+
+1. **Understand and interview.** Read the available context, investigate technical facts, and ask focused questions about consequential gaps. Follow up on ambiguous answers and explore relevant alternatives.
+2. **Synthesize the plan.** Explain the intended outcome, scope, approach, tradeoffs, success criteria, and remaining uncertainty. Questioning stops when these are clear enough to choose the next useful step.
+3. **Plan iterations.** Give each increment a useful capability or learning objective, prerequisites, evidence, and a review point. Detail the next iteration; keep later choices provisional when earlier results could change them.
+4. **Prepare issues when needed.** Break ready iterations into demonstrable vertical slices with acceptance checks and explicit dependencies. Several issues can contribute to one iteration.
+
+There is no question quota. The skill reuses settled answers, skips questions that would not materially change the plan, and can proceed directly from a sufficiently detailed brief. It incorporates the useful interviewing behavior from the archived `grill-me` skill; installing that archived skill separately is unnecessary.
+
+The default output is shared understanding and an iteration plan. Request a saved plan or detailed issue bodies when you need a durable handoff. Planning alone does not start implementation or publish tracker issues. After an iteration produces evidence, revise the next increment before expanding its issues.
+
+See the [planning examples](skills/idea-to-issues/references/planning-examples.md) for interview depth and iteration boundaries, and the [vertical-slicing guide](skills/idea-to-issues/references/vertical-slicing.md) for issue decomposition.
+
 ## Usage Model
 
 - This repository is the source of truth.
