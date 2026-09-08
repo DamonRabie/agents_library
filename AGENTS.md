@@ -11,6 +11,8 @@ This repository is a shared library of reusable agent assets. Keep the canonical
 
 The active install surface is the curated super-skill portfolio under `skills/`. Add broadly reusable lessons to the relevant super skill's `data/*.csv` when possible, or to the consuming repo's memory file when repo-specific. Create a new skill only when the domain is not covered by the current super-skill set.
 
+`skills/idea-to-issues/` is the active pre-development planning workflow: adaptive interviewing until consequential decisions are clear, shared-plan synthesis, then iterations with evidence and review points before detailed issues. Preserve its readiness-based stopping condition rather than a question quota. Interviewing guidance adapted from `archive/grill-me/` lives in the active skill; consumers do not need the archived skill installed.
+
 ## Build, Test, and Development Commands
 There is no root build pipeline. Use lightweight inspection and skill-local validation instead:
 
